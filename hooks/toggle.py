@@ -105,6 +105,9 @@ def parse_toggle_intent(text: str) -> bool | None:
     if not t:
         return None
     t = re.sub(r"^/", "", t)
+    # Strict mode phrases are handled separately — never treat as full off/on.
+    if re.search(r"\bstrict\b", t):
+        return None
 
     brand = r"(?:wrath|vanta|forge)"
     off_patterns = (

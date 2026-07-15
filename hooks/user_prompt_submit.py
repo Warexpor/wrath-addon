@@ -45,6 +45,30 @@ def main() -> int:
         data = plugin_data()
         cfg = load_project_config(discover_start(event))
 
+        # Strict before on/off so "disable wrath strict" is not a full runtime off.
+        strict_intent = parse_strict_intent(prompt)
+        if strict_intent is not None:
+            state = set_strict(strict_intent, data_dir=data, source="user_prompt")
+            append_event(
+                data,
+                {
+                    "kind": "toggle",
+                    "session_id": session_id_from_env(event),
+                    "strict": state["strict"],
+                    "source": "user_prompt_strict",
+                },
+            )
+            emit(
+                {
+                    "systemMessage": (
+                        f"[Wrath strict={'on' if state['strict'] else 'off'}] "
+                        "Env WRATH_STRICT overrides state when set. "
+                        "STRICT adds DROP/infra/force-push-without-branch blocks."
+                    )
+                }
+            )
+            return 0
+
         intent = parse_toggle_intent(prompt)
         if intent is not None:
             state = set_wrath_enabled(intent, data_dir=data, source="user_prompt")
@@ -64,29 +88,6 @@ def main() -> int:
                         strict=is_strict(data, project=cfg),
                         budget=budget_tools_effective(cfg),
                         config_path=cfg.path,
-                    )
-                }
-            )
-            return 0
-
-        strict_intent = parse_strict_intent(prompt)
-        if strict_intent is not None:
-            state = set_strict(strict_intent, data_dir=data, source="user_prompt")
-            append_event(
-                data,
-                {
-                    "kind": "toggle",
-                    "session_id": session_id_from_env(event),
-                    "strict": state["strict"],
-                    "source": "user_prompt_strict",
-                },
-            )
-            emit(
-                {
-                    "systemMessage": (
-                        f"[Wrath strict={'on' if state['strict'] else 'off'}] "
-                        "Env WRATH_STRICT overrides state when set. "
-                        "STRICT adds DROP/infra/force-push-without-branch blocks."
                     )
                 }
             )

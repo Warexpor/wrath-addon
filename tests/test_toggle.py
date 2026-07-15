@@ -29,6 +29,10 @@ def test_parse_strict_intent():
     assert parse_strict_intent("/wrath-strict") is True
     assert parse_strict_intent("wrath-strict-off") is False
     assert parse_strict_intent("hello") is None
+    # must not be mistaken for full runtime off
+    assert parse_toggle_intent("disable wrath strict") is None
+    assert parse_toggle_intent("wrath-strict-off") is None
+    assert parse_strict_intent("disable wrath strict") is False
 
 
 def test_set_strict_roundtrip(tmp_path: Path, monkeypatch):

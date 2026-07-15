@@ -94,6 +94,6 @@ Write-Host ""
 Write-Host "Done. Next:"
 Write-Host "  - Restart grok or reload plugins (Plugins tab: r)"
 Write-Host "  - Try /wrath  /wrath-status  /wrath-thin  /wrath-check  /wrath-review"
-Write-Host "  - Overrides: WRATH_ALLOW_FORCE / HARD / CLEAN / PIPE_EXEC ; WRATH_STRICT=1 ; WRATH_BUDGET_TOOLS=N"
+Write-Host "  - Overrides: WRATH_ALLOW_* ; WRATH_STRICT ; WRATH_BUDGET_TOOLS ; WRATH_REREAD_WARN"
 & $Grok plugin details wrath 2>$null
 if ($LASTEXITCODE -ne 0) { & $Grok plugin list }
