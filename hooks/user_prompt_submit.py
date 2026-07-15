@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit: on/off + strict phrases + fluff nudge."""
+"""UserPromptSubmit: on/off + strict + orchestrate phrases + fluff nudge."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from common import (  # noqa: E402
     prompt_text,
     read_stdin_json,
 )
-from drive_pack import drive_system_message  # noqa: E402
+from drive_pack import ORCHESTRATE_BODY, drive_system_message  # noqa: E402
 from journal import append_event, session_id_from_env  # noqa: E402
 from project_config import (  # noqa: E402
     budget_tools_effective,
@@ -24,10 +24,13 @@ from project_config import (  # noqa: E402
     load_project_config,
 )
 from toggle import (  # noqa: E402
+    is_orchestrate,
     is_strict,
     is_wrath_enabled,
+    parse_orchestrate_intent,
     parse_strict_intent,
     parse_toggle_intent,
+    set_orchestrate,
     set_strict,
     set_wrath_enabled,
 )
@@ -45,7 +48,31 @@ def main() -> int:
         data = plugin_data()
         cfg = load_project_config(discover_start(event))
 
-        # Strict before on/off so "disable wrath strict" is not a full runtime off.
+        # Mode toggles before full on/off so nested phrases don't disable runtime.
+        orch_intent = parse_orchestrate_intent(prompt)
+        if orch_intent is not None:
+            state = set_orchestrate(orch_intent, data_dir=data, source="user_prompt")
+            append_event(
+                data,
+                {
+                    "kind": "toggle",
+                    "session_id": session_id_from_env(event),
+                    "orchestrate": state["orchestrate"],
+                    "source": "user_prompt_orchestrate",
+                },
+            )
+            on = bool(state["orchestrate"])
+            msg = (
+                f"[Wrath orchestrate={'on' if on else 'off'}] "
+                "Env WRATH_ORCHESTRATE overrides state when set."
+            )
+            if on:
+                msg = f"{msg}\n{ORCHESTRATE_BODY.strip()}"
+            else:
+                msg = f"{msg} Multi-model fleet routing disabled for this machine."
+            emit({"systemMessage": msg})
+            return 0
+
         strict_intent = parse_strict_intent(prompt)
         if strict_intent is not None:
             state = set_strict(strict_intent, data_dir=data, source="user_prompt")
@@ -88,6 +115,7 @@ def main() -> int:
                         strict=is_strict(data, project=cfg),
                         budget=budget_tools_effective(cfg),
                         config_path=cfg.path,
+                        orchestrate=is_orchestrate(data),
                     )
                 }
             )

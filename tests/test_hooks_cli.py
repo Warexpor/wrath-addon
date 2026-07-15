@@ -59,3 +59,14 @@ def test_session_start_has_drive(tmp_path: Path):
     assert "Wrath" in msg
     assert "v" in msg  # status line version
     assert "strict=" in msg
+    assert "orch=" in msg
+
+
+def test_session_start_orchestrate_injects_routing(tmp_path: Path):
+    from toggle import set_orchestrate
+
+    set_orchestrate(True, data_dir=tmp_path, source="test")
+    res = _run_hook("session_start.py", {}, tmp_path)
+    msg = res["systemMessage"]
+    assert "orch=on" in msg
+    assert "ORCHESTRATE" in msg or "LEAD" in msg

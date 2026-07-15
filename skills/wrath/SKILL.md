@@ -14,13 +14,14 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 - Journal + re-read warn + session stats
 - MCP inspect tools; slash procedures below
 
-## On / off / strict
+## On / off / modes
 
 | Phrase / command | Effect |
 |------------------|--------|
 | `/wrath-on` · “turn wrath on” | Runtime **enabled** |
 | `/wrath-off` · “turn wrath off” | Runtime **disabled** |
 | `/wrath-strict` · “wrath-strict-off” | STRICT state on/off |
+| `/wrath-orchestrate` · “multi-model on” | Fleet multi-model routing on/off |
 
 ## Commands
 
@@ -34,6 +35,7 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 | `/wrath-doctor` | wrath-doctor |
 | `/wrath-review` | wrath-review |
 | `/wrath-strict` | wrath-strict |
+| `/wrath-orchestrate` | wrath-orchestrate |
 | `/wrath-why` | wrath-why |
 
 If the user only said `/wrath`, reply with this table in ≤8 lines.

@@ -23,11 +23,12 @@ def main() -> int:
         ensure_mcp_config()
         event = read_stdin_json()
         data = plugin_data()
-        from toggle import is_strict, is_wrath_enabled
+        from toggle import is_orchestrate, is_strict, is_wrath_enabled
 
         cfg = load_project_config(discover_start(event))
         enabled = is_wrath_enabled(data)
         strict = is_strict(data, project=cfg)
+        orchestrate = is_orchestrate(data)
         budget = budget_tools_effective(cfg)
         append_event(
             data,
@@ -36,6 +37,7 @@ def main() -> int:
                 "session_id": session_id_from_env(event),
                 "enabled": enabled,
                 "strict": strict,
+                "orchestrate": orchestrate,
             },
         )
         emit(
@@ -45,6 +47,7 @@ def main() -> int:
                     strict=strict,
                     budget=budget,
                     config_path=cfg.path,
+                    orchestrate=orchestrate,
                 )
             }
         )

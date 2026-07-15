@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0 — 2026-07-15
+
+### Added
+- Multi-model fleet mode: `/wrath-orchestrate` · `multi-model on` / off
+- State flag `orchestrate` + env `WRATH_ORCHESTRATE`
+- Drive pack injects lead/specialist routing when orch=on (SessionStart + toggle)
+- Skill `wrath-orchestrate`; MCP `wrath_set_orchestrate`; CLI `orchestrate-on|off`
+- Status line field `orch=on|off`
+
+### Changed
+- Status line includes orchestrate; set_enabled status reports `orchestrate`
+
 ## 1.1.1 — 2026-07-15
 
 ### Fixed

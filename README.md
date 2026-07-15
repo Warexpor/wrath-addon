@@ -21,12 +21,12 @@ Or: `grok plugin install . --trust` then reload plugins.
 
 | Piece | Effect |
 |-------|--------|
-| SessionStart | Status line (version · ON/OFF · strict · budget · config) + short drive pack |
+| SessionStart | Status line (version · ON/OFF · strict · orch · budget · config) + drive pack |
 | PreToolUse | Footguns + nested `powershell`/`bash -c` unwrap + `.git/` write block |
 | Project config | `.wrath.toml` or `.wrath.json` in repo |
 | Re-read warn | Soft warn after N same-path reads (default 3) |
-| Skills | `/wrath-*` including `/wrath-strict` `/wrath-why` |
-| MCP | doctor, config, policy_check, journal_tail, session_stats, set_enabled |
+| Skills | `/wrath-*` including `/wrath-strict` `/wrath-orchestrate` `/wrath-why` |
+| MCP | doctor, config, policy_check, journal_tail, session_stats, set_enabled, set_orchestrate |
 
 ### Project config (optional)
 
@@ -49,11 +49,14 @@ Walks up from cwd / `GROK_PROJECT_DIR`.
 | `WRATH_ALLOW_CLEAN=1` | Allow `git clean -f[dx]` |
 | `WRATH_ALLOW_PIPE_EXEC=1` | Allow curl\|bash / iwr\|iex |
 | `WRATH_STRICT=1` | Env force STRICT (overrides state) |
+| `WRATH_ORCHESTRATE=1` | Env force multi-model orchestrate mode |
 | `WRATH_BUDGET_TOOLS=N` | Budget nudge threshold |
 | `WRATH_REREAD_WARN=N` | Re-read warn threshold |
 | `WRATH_OFF=1` / `WRATH_ON=1` | Force runtime off/on |
 
 **Strict precedence:** env (if set) → state (`/wrath-strict`) OR project `strict`.
+
+**Orchestrate:** `/wrath-orchestrate` · `multi-model on` — lead model judges; pin specialists (`composer-2.5-fast`, `glm-5.2`, `deepseek-v4-flash`, `mimo-v2.5`) on spawn. Env `WRATH_ORCHESTRATE` overrides state.
 
 ## Verify
 

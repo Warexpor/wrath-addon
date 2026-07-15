@@ -16,6 +16,8 @@ Project: optional `.wrath.toml` / `.wrath.json` (`deny`, `budget_tools`, `reread
 
 Strict: `/wrath-strict` or `WRATH_STRICT=1`.
 
+Orchestrate (multi-model fleet): `/wrath-orchestrate` or `WRATH_ORCHESTRATE=1`. Off: `/wrath-orchestrate-off`.
+
 ## Workflows
 
-`/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-status` `/wrath-doctor` `/wrath-review` `/wrath-strict` `/wrath-why`
+`/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-status` `/wrath-doctor` `/wrath-review` `/wrath-strict` `/wrath-orchestrate` `/wrath-why`
