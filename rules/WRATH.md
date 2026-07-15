@@ -18,6 +18,8 @@ Strict: `/wrath-strict` or `WRATH_STRICT=1`.
 
 Orchestrate (multi-model fleet): `/wrath-orchestrate` or `WRATH_ORCHESTRATE=1`. Off: `/wrath-orchestrate-off`.
 
+IL (agent wire dialect): `/wrath-il` or `WRATH_IL=1`. Off: `/wrath-il-off`. User-facing stays prose; internal + spawn use IL. Child returns: **one line**, no markdown fences, must have `S:`+`Δ:` (or `S:fail|B:|X:`). Soft/fenced child → escalate, do not accept.
+
 ## Workflows
 
-`/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-status` `/wrath-doctor` `/wrath-review` `/wrath-strict` `/wrath-orchestrate` `/wrath-why`
+`/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-status` `/wrath-doctor` `/wrath-review` `/wrath-strict` `/wrath-orchestrate` `/wrath-il` `/wrath-why`

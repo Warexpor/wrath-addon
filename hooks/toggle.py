@@ -1,4 +1,4 @@
-"""Wrath enabled/disabled + strict + orchestrate flags under plugin data."""
+"""Wrath enabled/disabled + strict + orchestrate + il flags under plugin data."""
 
 from __future__ import annotations
 
@@ -16,11 +16,13 @@ STATE_NAME = "wrath_state.json"
 DEFAULT_ENABLED = True
 DEFAULT_STRICT = False
 DEFAULT_ORCHESTRATE = False
+DEFAULT_IL = False
 
 ENV_FORCE_OFF = "WRATH_OFF"
 ENV_FORCE_ON = "WRATH_ON"
 ENV_STRICT = "WRATH_STRICT"
 ENV_ORCHESTRATE = "WRATH_ORCHESTRATE"
+ENV_IL = "WRATH_IL"
 
 
 def state_path(data_dir: Path | None = None) -> Path:
@@ -32,6 +34,7 @@ def _defaults() -> dict[str, Any]:
         "enabled": DEFAULT_ENABLED,
         "strict": DEFAULT_STRICT,
         "orchestrate": DEFAULT_ORCHESTRATE,
+        "il": DEFAULT_IL,
     }
 
 
@@ -45,6 +48,7 @@ def load_state(data_dir: Path | None = None) -> dict[str, Any]:
             raw.setdefault("enabled", DEFAULT_ENABLED)
             raw.setdefault("strict", DEFAULT_STRICT)
             raw.setdefault("orchestrate", DEFAULT_ORCHESTRATE)
+            raw.setdefault("il", DEFAULT_IL)
             return raw
     except (OSError, json.JSONDecodeError):
         pass
@@ -67,6 +71,7 @@ def _preserve_flags(prev: dict[str, Any], **overrides: Any) -> dict[str, Any]:
         "enabled": bool(prev.get("enabled", DEFAULT_ENABLED)),
         "strict": bool(prev.get("strict", DEFAULT_STRICT)),
         "orchestrate": bool(prev.get("orchestrate", DEFAULT_ORCHESTRATE)),
+        "il": bool(prev.get("il", DEFAULT_IL)),
     }
     base.update(overrides)
     return base
@@ -129,6 +134,21 @@ def set_orchestrate(
     return _write_state(data, payload)
 
 
+def is_il(data_dir: Path | None = None) -> bool:
+    """Precedence: env WRATH_IL if set → else state.il."""
+    env = os.environ.get(ENV_IL)
+    if env is not None and str(env).strip() != "":
+        return str(env).strip().lower() in {"1", "true", "yes", "on"}
+    return bool(load_state(data_dir).get("il", DEFAULT_IL))
+
+
+def set_il(il: bool, data_dir: Path | None = None, source: str = "cli") -> dict[str, Any]:
+    data = data_dir or plugin_data()
+    prev = load_state(data)
+    payload = _preserve_flags(prev, il=bool(il), source=source)
+    return _write_state(data, payload)
+
+
 def parse_toggle_intent(text: str) -> bool | None:
     """Return True=on, False=off, None=no toggle intent."""
     t = (text or "").strip().lower()
@@ -139,6 +159,13 @@ def parse_toggle_intent(text: str) -> bool | None:
     if re.search(r"\bstrict\b", t):
         return None
     if re.search(r"\borchestrate\b", t) or re.search(r"\bmulti[\s_-]*model\b", t):
+        return None
+    if re.search(r"\bwrath[\s_-]*il\b", t) or re.search(r"\bil[\s_-]*mode\b", t):
+        return None
+    # bare "il on/off" is mode, not runtime
+    if re.search(r"(?:^|\b)il[\s_-]*(?:on|off)\b", t) or re.search(
+        r"\b(?:enable|disable)\s+il\b", t
+    ):
         return None
 
     brand = r"(?:wrath|vanta|forge)"
@@ -222,6 +249,46 @@ def parse_orchestrate_intent(text: str) -> bool | None:
             if re.search(r"orchestrate[\s_-]*off\b", t) or re.search(
                 r"multi[\s_-]*model[\s_-]*off\b", t
             ):
+                return False
+            return True
+    return None
+
+
+def parse_il_intent(text: str) -> bool | None:
+    """Return True=il on, False=off, None=no intent."""
+    t = (text or "").strip().lower()
+    if not t:
+        return None
+    t = re.sub(r"^/", "", t)
+
+    off_patterns = (
+        r"\bwrath[\s_-]*il[\s_-]*off\b",
+        r"\bdisable\s+wrath\s+il\b",
+        r"\bwrath\s+il\s+off\b",
+        r"\bil[\s_-]*mode[\s_-]*off\b",
+        r"\bdisable\s+il\s+mode\b",
+        r"\bdisable\s+il\b",
+        r"\bil[\s_-]*off\b",
+        r"\bturn\s+il\s+off\b",
+        r"\bturn\s+wrath\s+il\s+off\b",
+    )
+    on_patterns = (
+        r"\bwrath[\s_-]*il\b",
+        r"\benable\s+wrath\s+il\b",
+        r"\bwrath\s+il\s+on\b",
+        r"\benable\s+il\s+mode\b",
+        r"\bil[\s_-]*mode[\s_-]*on\b",
+        r"\benable\s+il\b",
+        r"\bil[\s_-]*on\b",
+        r"\bturn\s+il\s+on\b",
+        r"\bturn\s+wrath\s+il\s+on\b",
+    )
+    for pat in off_patterns:
+        if re.search(pat, t):
+            return False
+    for pat in on_patterns:
+        if re.search(pat, t):
+            if re.search(r"il[\s_-]*off\b", t) or re.search(r"\bil\s+mode\s+off\b", t):
                 return False
             return True
     return None

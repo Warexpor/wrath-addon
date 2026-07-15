@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "wrath": {
-      "command": "mcp/launch.cmd",
+      "command": "C:\\Users\\amicu\\wrath-addon\\mcp\\launch.cmd",
       "args": []
     }
   }

@@ -3,12 +3,15 @@ import os
 from pathlib import Path
 
 from toggle import (
+    is_il,
     is_orchestrate,
     is_strict,
     is_wrath_enabled,
+    parse_il_intent,
     parse_orchestrate_intent,
     parse_strict_intent,
     parse_toggle_intent,
+    set_il,
     set_orchestrate,
     set_strict,
     set_wrath_enabled,
@@ -49,6 +52,19 @@ def test_parse_orchestrate_intent():
     assert parse_toggle_intent("disable multi-model") is None
 
 
+def test_parse_il_intent():
+    assert parse_il_intent("/wrath-il") is True
+    assert parse_il_intent("wrath-il-off") is False
+    assert parse_il_intent("il on") is True
+    assert parse_il_intent("il off") is False
+    assert parse_il_intent("enable wrath il") is True
+    assert parse_il_intent("disable il") is False
+    assert parse_il_intent("hello") is None
+    assert parse_toggle_intent("/wrath-il") is None
+    assert parse_toggle_intent("il on") is None
+    assert parse_toggle_intent("disable il") is None
+
+
 def test_set_strict_roundtrip(tmp_path: Path, monkeypatch):
     monkeypatch.delenv("WRATH_STRICT", raising=False)
     set_strict(True, data_dir=tmp_path, source="test")
@@ -65,17 +81,29 @@ def test_set_orchestrate_roundtrip(tmp_path: Path, monkeypatch):
     assert is_orchestrate(tmp_path) is False
 
 
+def test_set_il_roundtrip(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("WRATH_IL", raising=False)
+    set_il(True, data_dir=tmp_path, source="test")
+    assert is_il(tmp_path) is True
+    set_il(False, data_dir=tmp_path, source="test")
+    assert is_il(tmp_path) is False
+
+
 def test_orchestrate_preserves_other_flags(tmp_path: Path, monkeypatch):
     monkeypatch.delenv("WRATH_ORCHESTRATE", raising=False)
     monkeypatch.delenv("WRATH_STRICT", raising=False)
+    monkeypatch.delenv("WRATH_IL", raising=False)
     set_wrath_enabled(True, data_dir=tmp_path, source="test")
     set_strict(True, data_dir=tmp_path, source="test")
     set_orchestrate(True, data_dir=tmp_path, source="test")
+    set_il(True, data_dir=tmp_path, source="test")
     assert is_strict(tmp_path) is True
     assert is_wrath_enabled(tmp_path) is True
+    assert is_il(tmp_path) is True
     set_wrath_enabled(False, data_dir=tmp_path, source="test")
     assert is_orchestrate(tmp_path) is True
     assert is_strict(tmp_path) is True
+    assert is_il(tmp_path) is True
 
 
 def test_set_enabled_roundtrip(tmp_path: Path, monkeypatch):
@@ -210,6 +238,31 @@ def test_user_prompt_orchestrate_on(tmp_path: Path, monkeypatch):
     assert "orchestrate=on" in msg
     assert "ORCHESTRATE" in msg or "LEAD" in msg
     assert is_orchestrate(tmp_path) is True
+
+
+def test_user_prompt_il_on(tmp_path: Path, monkeypatch):
+    import subprocess
+    import sys
+
+    monkeypatch.delenv("WRATH_IL", raising=False)
+    env = {**os.environ, "GROK_PLUGIN_DATA": str(tmp_path)}
+    hooks = Path(__file__).resolve().parents[1] / "hooks"
+    set_il(False, data_dir=tmp_path)
+    proc = subprocess.run(
+        [sys.executable, str(hooks / "user_prompt_submit.py")],
+        input=json.dumps({"prompt": "/wrath-il"}),
+        capture_output=True,
+        text=True,
+        env=env,
+        cwd=str(hooks),
+        check=False,
+    )
+    assert proc.returncode == 0
+    out = json.loads(proc.stdout)
+    msg = out.get("systemMessage", "")
+    assert "il=on" in msg
+    assert "IL" in msg or "agent wire" in msg.lower()
+    assert is_il(tmp_path) is True
 
 
 def test_post_drains_stdin_when_disabled(tmp_path: Path, monkeypatch):

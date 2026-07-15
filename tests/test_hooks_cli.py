@@ -70,3 +70,13 @@ def test_session_start_orchestrate_injects_routing(tmp_path: Path):
     msg = res["systemMessage"]
     assert "orch=on" in msg
     assert "ORCHESTRATE" in msg or "LEAD" in msg
+
+
+def test_session_start_il_injects_wire(tmp_path: Path):
+    from toggle import set_il
+
+    set_il(True, data_dir=tmp_path, source="test")
+    res = _run_hook("session_start.py", {}, tmp_path)
+    msg = res["systemMessage"]
+    assert "il=on" in msg
+    assert "IL" in msg or "agent wire" in msg.lower()

@@ -21,10 +21,12 @@ from project_config import (  # noqa: E402
     reread_warn_effective,
 )
 from toggle import (  # noqa: E402
+    is_il,
     is_orchestrate,
     is_strict,
     is_wrath_enabled,
     load_state,
+    set_il,
     set_orchestrate,
     set_wrath_enabled,
 )
@@ -104,7 +106,7 @@ TOOLS = [
     },
     {
         "name": "wrath_config",
-        "description": "Effective Wrath settings (enabled, strict, orchestrate, budget, reread, config).",
+        "description": "Effective Wrath settings (enabled, strict, orchestrate, il, budget, reread, config).",
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
@@ -128,6 +130,15 @@ TOOLS = [
             "type": "object",
             "properties": {"orchestrate": {"type": "boolean"}},
             "required": ["orchestrate"],
+        },
+    },
+    {
+        "name": "wrath_set_il",
+        "description": "Enable or disable Wrath IL agent-wire dialect. args: il bool.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"il": {"type": "boolean"}},
+            "required": ["il"],
         },
     },
     {
@@ -186,6 +197,9 @@ def handle_tool(name: str, args: dict) -> str:
         orch = bool(args.get("orchestrate"))
         state = set_orchestrate(orch, data_dir=d, source="mcp")
         return json.dumps(state, indent=2)
+    if name == "wrath_set_il":
+        state = set_il(bool(args.get("il")), data_dir=d, source="mcp")
+        return json.dumps(state, indent=2)
     if name == "wrath_config":
         return json.dumps(
             {
@@ -193,6 +207,7 @@ def handle_tool(name: str, args: dict) -> str:
                 "enabled": is_wrath_enabled(d),
                 "strict": is_strict(d, project=cfg),
                 "orchestrate": is_orchestrate(d),
+                "il": is_il(d),
                 "budget_tools": budget_tools_effective(cfg),
                 "reread_warn": reread_warn_effective(cfg),
                 "project_config": str(cfg.path) if cfg.path else None,
@@ -225,6 +240,7 @@ def handle_tool(name: str, args: dict) -> str:
             "enabled": is_wrath_enabled(d),
             "strict": is_strict(d, project=cfg),
             "orchestrate": is_orchestrate(d),
+            "il": is_il(d),
             "state": load_state(d),
             "project_config": str(cfg.path) if cfg.path else None,
             "budget_tools": budget_tools_effective(cfg),

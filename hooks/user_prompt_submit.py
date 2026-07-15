@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit: on/off + strict + orchestrate phrases + fluff nudge."""
+"""UserPromptSubmit: on/off + strict + orchestrate + il phrases + fluff nudge."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from common import (  # noqa: E402
     prompt_text,
     read_stdin_json,
 )
-from drive_pack import ORCHESTRATE_BODY, drive_system_message  # noqa: E402
+from drive_pack import IL_BODY, ORCHESTRATE_BODY, drive_system_message  # noqa: E402
 from journal import append_event, session_id_from_env  # noqa: E402
 from project_config import (  # noqa: E402
     budget_tools_effective,
@@ -24,12 +24,15 @@ from project_config import (  # noqa: E402
     load_project_config,
 )
 from toggle import (  # noqa: E402
+    is_il,
     is_orchestrate,
     is_strict,
     is_wrath_enabled,
+    parse_il_intent,
     parse_orchestrate_intent,
     parse_strict_intent,
     parse_toggle_intent,
+    set_il,
     set_orchestrate,
     set_strict,
     set_wrath_enabled,
@@ -70,6 +73,30 @@ def main() -> int:
                 msg = f"{msg}\n{ORCHESTRATE_BODY.strip()}"
             else:
                 msg = f"{msg} Multi-model fleet routing disabled for this machine."
+            emit({"systemMessage": msg})
+            return 0
+
+        il_intent = parse_il_intent(prompt)
+        if il_intent is not None:
+            state = set_il(il_intent, data_dir=data, source="user_prompt")
+            append_event(
+                data,
+                {
+                    "kind": "toggle",
+                    "session_id": session_id_from_env(event),
+                    "il": state["il"],
+                    "source": "user_prompt_il",
+                },
+            )
+            on = bool(state["il"])
+            msg = (
+                f"[Wrath il={'on' if on else 'off'}] "
+                "Env WRATH_IL overrides state when set."
+            )
+            if on:
+                msg = f"{msg}\n{IL_BODY.strip()}"
+            else:
+                msg = f"{msg} Agent wire / internal IL dialect disabled."
             emit({"systemMessage": msg})
             return 0
 
@@ -116,6 +143,7 @@ def main() -> int:
                         budget=budget_tools_effective(cfg),
                         config_path=cfg.path,
                         orchestrate=is_orchestrate(data),
+                        il=is_il(data),
                     )
                 }
             )

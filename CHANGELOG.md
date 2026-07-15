@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.3.1 — 2026-07-15
+
+### Changed
+- IL child return hard rules: one line only, no markdown fences, require `S:`+`Δ:` (or fail wire)
+- Drive pack `IL_BODY` + skill/lexicon: lead must put return skeleton in `O:` for glm/deepseek; soft/fenced → `X:soft`
+- LEXICON notes measured model compliance (composer high, deepseek medium, glm freeform low)
+
+## 1.3.0 — 2026-07-15
+
+### Added
+- Wrath IL agent-wire dialect: `/wrath-il` · `il on` / off
+- State flag `il` + env `WRATH_IL`
+- Drive pack injects IL lexicon when il=on (SessionStart + toggle)
+- Skill `wrath-il` (+ `LEXICON.md`); MCP `wrath_set_il`; CLI `il-on|off`
+- Status line field `il=on|off`
+
+### Changed
+- Status line / set_enabled status / wrath_config report `il`
+- Toggle parser ignores IL phrases for full runtime on/off
+
 ## 1.2.0 — 2026-07-15
 
 ### Added

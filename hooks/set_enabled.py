@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI: python set_enabled.py on|off|status|strict-on|strict-off|orchestrate-on|orchestrate-off"""
+"""CLI: python set_enabled.py on|off|status|strict-*|orchestrate-*|il-*"""
 
 from __future__ import annotations
 
@@ -11,10 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from project_config import discover_start, load_project_config  # noqa: E402
 from toggle import (  # noqa: E402
+    is_il,
     is_orchestrate,
     is_strict,
     is_wrath_enabled,
     load_state,
+    set_il,
     set_orchestrate,
     set_strict,
     set_wrath_enabled,
@@ -25,7 +27,7 @@ def main(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help"):
         print(
             "usage: set_enabled.py on|off|status|strict-on|strict-off|"
-            "orchestrate-on|orchestrate-off",
+            "orchestrate-on|orchestrate-off|il-on|il-off",
             file=sys.stderr,
         )
         return 2
@@ -39,6 +41,7 @@ def main(argv: list[str]) -> int:
                     "enabled": is_wrath_enabled(),
                     "strict": is_strict(project=cfg),
                     "orchestrate": is_orchestrate(),
+                    "il": is_il(),
                     "state": state,
                     "project_config": str(cfg.path) if cfg.path else None,
                 },
@@ -63,6 +66,12 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd in ("orchestrate-off", "orchestrate_off", "orch-off", "orch_off"):
         print(json.dumps(set_orchestrate(False, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd in ("il-on", "il_on", "il"):
+        print(json.dumps(set_il(True, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd in ("il-off", "il_off"):
+        print(json.dumps(set_il(False, source="set_enabled.py"), indent=2))
         return 0
     print(f"unknown: {cmd}", file=sys.stderr)
     return 2

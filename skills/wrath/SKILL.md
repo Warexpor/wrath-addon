@@ -22,6 +22,7 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 | `/wrath-off` · “turn wrath off” | Runtime **disabled** |
 | `/wrath-strict` · “wrath-strict-off” | STRICT state on/off |
 | `/wrath-orchestrate` · “multi-model on” | Fleet multi-model routing on/off |
+| `/wrath-il` · “il on” | Agent-wire IL dialect on/off |
 
 ## Commands
 
@@ -36,6 +37,7 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 | `/wrath-review` | wrath-review |
 | `/wrath-strict` | wrath-strict |
 | `/wrath-orchestrate` | wrath-orchestrate |
+| `/wrath-il` | wrath-il |
 | `/wrath-why` | wrath-why |
 
 If the user only said `/wrath`, reply with this table in ≤8 lines.
