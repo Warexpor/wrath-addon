@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import emit, log_hook_error, plugin_data, read_stdin_json  # noqa: E402
+from common import emit, ensure_mcp_config, log_hook_error, plugin_data, read_stdin_json  # noqa: E402
 from drive_pack import drive_system_message  # noqa: E402
 from journal import append_event, session_id_from_env  # noqa: E402
 from project_config import (  # noqa: E402
@@ -20,6 +20,7 @@ from project_config import (  # noqa: E402
 
 def main() -> int:
     try:
+        ensure_mcp_config()
         event = read_stdin_json()
         data = plugin_data()
         from toggle import is_strict, is_wrath_enabled

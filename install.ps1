@@ -57,13 +57,15 @@ if (-not $installed) {
 }
 
 if ($installed) {
+    $launchCmd = Join-Path $installed "mcp\launch.cmd"
     $runPy = Join-Path $installed "mcp\run.py"
-    if (Test-Path $runPy) {
+    $launcher = if (Test-Path $launchCmd) { $launchCmd } elseif (Test-Path $runPy) { $runPy } else { $null }
+    if ($launcher) {
         $mcpObj = [ordered]@{
             mcpServers = [ordered]@{
                 wrath = [ordered]@{
-                    command = "python"
-                    args    = @($runPy)
+                    command = $launcher
+                    args    = @()
                 }
             }
         }
@@ -71,7 +73,15 @@ if ($installed) {
         $json = $mcpObj | ConvertTo-Json -Depth 6
         # UTF-8 without BOM (PowerShell 5 may only offer utf8 with BOM)
         [System.IO.File]::WriteAllText($mcpPath, $json + "`n")
-        Write-Host "Patched MCP absolute path -> $runPy"
+        Write-Host "Patched MCP absolute launcher -> $launcher"
+        # User config survives local-plugin sync (Grok may reset installed .mcp.json on restart).
+        & $Grok mcp remove wrath --scope user 2>$null
+        & $Grok mcp add wrath --scope user -- $launcher
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "WARN: grok mcp add wrath failed ($LASTEXITCODE)" -ForegroundColor Yellow
+        } else {
+            Write-Host "Registered wrath MCP in ~/.grok/config.toml"
+        }
     }
     # Drop empty commands/ so Grok does not report a phantom command dir
     $cmdDir = Join-Path $installed "commands"

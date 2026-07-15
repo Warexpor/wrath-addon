@@ -42,34 +42,39 @@ def data_dir() -> Path:
 
 def _mcp_health(root: Path) -> dict:
     mcp_json = root / ".mcp.json"
-    run_py = root / "mcp" / "run.py"
+    launcher = root / "mcp" / "launch.cmd"
+    if not launcher.is_file():
+        launcher = root / "mcp" / "run.py"
     absolute = False
     args: list = []
-    exists = run_py.is_file()
+    command = ""
+    exists = launcher.is_file()
     fix = None
     if mcp_json.is_file():
         try:
             cfg = json.loads(mcp_json.read_text(encoding="utf-8"))
             servers = cfg.get("mcpServers") or cfg.get("mcp_servers") or {}
             wrath = servers.get("wrath") or {}
+            command = str(wrath.get("command") or "")
             args = list(wrath.get("args") or [])
-            if args:
+            candidate: Path | None = None
+            if command and not command.lower().startswith("python"):
+                candidate = Path(command)
+            elif args:
                 candidate = Path(str(args[0]))
+            if candidate is not None:
                 absolute = candidate.is_absolute()
                 if absolute:
                     exists = candidate.is_file()
                 else:
-                    exists = (
-                        (root / candidate).is_file()
-                        if not candidate.is_absolute()
-                        else candidate.is_file()
-                    )
+                    exists = (root / candidate).is_file()
         except (OSError, json.JSONDecodeError, TypeError):
-            fix = r".\install.ps1  # re-patch absolute MCP path"
+            fix = r".\install.ps1  # re-patch absolute MCP launcher"
     if not absolute or not exists:
-        fix = r".\install.ps1  # re-patch absolute MCP path"
+        fix = r".\install.ps1  # re-patch absolute MCP launcher"
     return {
         "mcp_json": mcp_json.is_file(),
+        "mcp_command": command,
         "mcp_args": args,
         "mcp_args_absolute": absolute,
         "mcp_run_exists": exists,

@@ -40,6 +40,50 @@ def plugin_version() -> str:
     return "0.0.0"
 
 
+def mcp_launcher_path(root: Path | None = None) -> Path:
+    """Platform launcher that resolves run.py from its own directory."""
+    base = root or plugin_root()
+    if sys.platform == "win32":
+        launcher = base / "mcp" / "launch.cmd"
+        if launcher.is_file():
+            return launcher
+    else:
+        launcher = base / "mcp" / "launch.sh"
+        if launcher.is_file():
+            return launcher
+    return base / "mcp" / "run.py"
+
+
+def ensure_mcp_config(root: Path | None = None) -> bool:
+    """Patch installed .mcp.json to an absolute launcher path (Grok cwd != plugin root)."""
+    base = root or plugin_root()
+    mcp_json = base / ".mcp.json"
+    launcher = mcp_launcher_path(base)
+    if not launcher.is_file():
+        return False
+    abs_launcher = str(launcher.resolve())
+    desired = {
+        "mcpServers": {
+            "wrath": {
+                "command": abs_launcher,
+                "args": [],
+            }
+        }
+    }
+    try:
+        current: dict[str, Any] = {}
+        if mcp_json.is_file():
+            loaded = json.loads(mcp_json.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                current = loaded
+        if current == desired:
+            return True
+        mcp_json.write_text(json.dumps(desired, indent=2) + "\n", encoding="utf-8")
+        return True
+    except (OSError, TypeError, ValueError):
+        return False
+
+
 def read_stdin_json() -> dict[str, Any]:
     try:
         raw = sys.stdin.read()
