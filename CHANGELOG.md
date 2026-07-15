@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.1 — 2026-07-15
+
+### Fixed
+- MCP failed after Grok restart when local-plugin sync reset `.mcp.json` to relative `mcp/run.py` / `mcp/launch.cmd` (Grok cwd ≠ plugin root)
+- `install.ps1` now registers wrath in `~/.grok/config.toml` with absolute `launch.cmd` path (survives sync)
+- SessionStart `ensure_mcp_config()` self-heals installed `.mcp.json` when paths drift
+- Strict vs on/off toggle collision (`/wrath-strict` no longer parsed as turn-off)
+
+### Added
+- `mcp/launch.cmd` / `mcp/launch.sh` — cwd-independent MCP launchers (`%~dp0` / `$0`)
+
+### Changed
+- `install.ps1` patches absolute `launch.cmd` instead of `run.py`
+- Doctor reports `mcp_command` + launcher path health
+
 ## 1.1.0 — 2026-07-15
 
 ### Added
