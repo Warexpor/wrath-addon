@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 - 2026-07-15
+
+### Fixed
+- CI: ruff E501/I001 and format so GitHub Actions `ci` goes green again
+
 ## 1.3.1 — 2026-07-15
 
 ### Changed

@@ -89,10 +89,7 @@ def main() -> int:
                 },
             )
             on = bool(state["il"])
-            msg = (
-                f"[Wrath il={'on' if on else 'off'}] "
-                "Env WRATH_IL overrides state when set."
-            )
+            msg = f"[Wrath il={'on' if on else 'off'}] Env WRATH_IL overrides state when set."
             if on:
                 msg = f"{msg}\n{IL_BODY.strip()}"
             else:

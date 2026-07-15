@@ -106,7 +106,9 @@ TOOLS = [
     },
     {
         "name": "wrath_config",
-        "description": "Effective Wrath settings (enabled, strict, orchestrate, il, budget, reread, config).",
+        "description": (
+            "Effective Wrath settings (enabled, strict, orchestrate, il, budget, reread, config)."
+        ),
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
@@ -125,7 +127,9 @@ TOOLS = [
     },
     {
         "name": "wrath_set_orchestrate",
-        "description": "Enable or disable multi-model orchestrate fleet mode. args: orchestrate bool.",
+        "description": (
+            "Enable or disable multi-model orchestrate fleet mode. args: orchestrate bool."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {"orchestrate": {"type": "boolean"}},

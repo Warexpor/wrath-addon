@@ -41,7 +41,8 @@ Child return HARD RULES:
 - Lead: put exact skeleton in O: for glm/deepseek; composer may freeform
 Soft/wrong/fenced child → treat as X:soft; do not rubber-stamp.
 Other: cite R:id not restate; one claim per Δ; no essay.
-Ex spawn: M:impl|P:hi|L:lead|→:composer-2.5-fast\\nI:goal=…;in=path/*\\nO:S:ok|Δ:…|F:n|K:med\\nC:pytest
+Ex spawn: M:impl|P:hi|L:lead|→:composer-2.5-fast
+  I:goal=…;in=path/*  O:S:ok|Δ:…|F:n|K:med  C:pytest
 Ex child: S:ok|Δ:root=…;fix=…|F:2|K:low
 Off: /wrath-il-off
 """
