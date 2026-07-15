@@ -8,12 +8,13 @@ from wrath.io import plugin_version
 from wrath.modes.il import IL_BODY
 from wrath.modes.orchestrate import ORCHESTRATE_BODY
 from wrath.modes.privacy import PRIVACY_BODY
+from wrath.modes.yolo import YOLO_BODY
 
 DRIVE_BODY = """Drive: cold, brief, ship. Key point first. No filler.
 Ladder: need → reuse → stdlib → one line → min code. Delete > add.
 Verify before done. Grep before re-read. /wrath-thin · /wrath-check · /wrath-ship
-Safety: footgun guards on. Profiles: /wrath-profile · privacy: /wrath-privacy
-Strict: /wrath-strict · fleet: /wrath-orchestrate · IL: /wrath-il
+Safety: footgun guards on. Profiles: /wrath-profile · privacy · yolo
+Strict: /wrath-strict · fleet: /wrath-orchestrate · IL: /wrath-il · YOLO: /wrath-yolo
 MCP: wrath_status · wrath_doctor · wrath_policy_check · wrath_last_deny · wrath_journal_tail
 """
 
@@ -28,6 +29,7 @@ def status_line(
     orchestrate: bool = False,
     il: bool = False,
     privacy: bool = False,
+    yolo: bool = False,
     profile: str = "default",
 ) -> str:
     ver = version or plugin_version()
@@ -36,10 +38,11 @@ def status_line(
     orch = "on" if orchestrate else "off"
     il_s = "on" if il else "off"
     priv = "on" if privacy else "off"
+    yo = "on" if yolo else "off"
     cfg = config_path.name if config_path else "none"
     return (
         f"[Wrath v{ver} · {on} · profile={profile} · strict={st} · orch={orch} · "
-        f"il={il_s} · privacy={priv} · budget={budget} · config={cfg}]"
+        f"il={il_s} · privacy={priv} · yolo={yo} · budget={budget} · config={cfg}]"
     )
 
 
@@ -52,6 +55,7 @@ def drive_system_message(
     orchestrate: bool = False,
     il: bool = False,
     privacy: bool = False,
+    yolo: bool = False,
     profile: str = "default",
 ) -> str:
     line = status_line(
@@ -62,6 +66,7 @@ def drive_system_message(
         orchestrate=orchestrate,
         il=il,
         privacy=privacy,
+        yolo=yolo,
         profile=profile,
     )
     if not enabled:
@@ -77,4 +82,6 @@ def drive_system_message(
         body = f"{body}\n{IL_BODY.strip()}"
     if privacy:
         body = f"{body}\n{PRIVACY_BODY.strip()}"
+    if yolo:
+        body = f"{body}\n{YOLO_BODY.strip()}"
     return f"{line}\n{body}"

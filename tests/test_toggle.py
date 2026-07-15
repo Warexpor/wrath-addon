@@ -9,18 +9,21 @@ from toggle import (
     is_privacy,
     is_strict,
     is_wrath_enabled,
+    is_yolo,
     parse_il_intent,
     parse_orchestrate_intent,
     parse_privacy_intent,
     parse_profile_intent,
     parse_strict_intent,
     parse_toggle_intent,
+    parse_yolo_intent,
     set_il,
     set_orchestrate,
     set_privacy,
     set_profile,
     set_strict,
     set_wrath_enabled,
+    set_yolo,
 )
 
 
@@ -84,8 +87,18 @@ def test_parse_privacy_intent():
 def test_parse_profile_intent():
     assert parse_profile_intent("/wrath-profile fleet") == "fleet"
     assert parse_profile_intent("wrath profile privacy") == "privacy"
+    assert parse_profile_intent("/wrath-profile yolo") == "yolo"
     assert parse_profile_intent("hello") is None
     assert parse_toggle_intent("/wrath-profile fleet") is None
+
+
+def test_parse_yolo_intent():
+    assert parse_yolo_intent("/wrath-yolo") is True
+    assert parse_yolo_intent("wrath-yolo-off") is False
+    assert parse_yolo_intent("yolo on") is True
+    assert parse_yolo_intent("yolo off") is False
+    assert parse_yolo_intent("hello") is None
+    assert parse_toggle_intent("/wrath-yolo") is None
 
 
 def test_set_strict_roundtrip(tmp_path: Path, monkeypatch):
@@ -109,12 +122,26 @@ def test_set_profile_roundtrip(tmp_path: Path, monkeypatch):
     monkeypatch.delenv("WRATH_ORCHESTRATE", raising=False)
     monkeypatch.delenv("WRATH_IL", raising=False)
     monkeypatch.delenv("WRATH_PRIVACY", raising=False)
+    monkeypatch.delenv("WRATH_YOLO", raising=False)
     set_profile("fleet", data_dir=tmp_path, source="test")
     assert get_profile(tmp_path) == "fleet"
     assert is_orchestrate(tmp_path) is True
     assert is_il(tmp_path) is True
     set_profile("default", data_dir=tmp_path, source="test")
     assert get_profile(tmp_path) == "default"
+
+
+def test_set_yolo_profile(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("WRATH_YOLO", raising=False)
+    monkeypatch.delenv("WRATH_PRIVACY", raising=False)
+    set_yolo(True, data_dir=tmp_path, source="test")
+    assert is_yolo(tmp_path) is True
+    assert get_profile(tmp_path) == "yolo"
+    assert is_privacy(tmp_path) is False
+    set_profile("yolo", data_dir=tmp_path, source="test")
+    assert is_yolo(tmp_path) is True
+    set_yolo(False, data_dir=tmp_path, source="test")
+    assert is_yolo(tmp_path) is False
 
 
 def test_set_orchestrate_roundtrip(tmp_path: Path, monkeypatch):

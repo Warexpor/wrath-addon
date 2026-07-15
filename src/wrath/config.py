@@ -19,7 +19,7 @@ CONFIG_NAMES = (".wrath.toml", ".wrath.json")
 PrivacyMode = Literal["off", "warn", "deny"]
 SpawnModelMode = Literal["off", "warn", "deny"]
 
-PROFILES = ("default", "thin", "strict", "privacy", "fleet", "max")
+PROFILES = ("default", "thin", "strict", "privacy", "fleet", "max", "yolo")
 
 
 @dataclass(frozen=True)
@@ -122,6 +122,7 @@ def _profile_defaults(name: str) -> dict[str, Any]:
         "orchestrate": False,
         "il": False,
         "privacy": False,
+        "yolo": False,
     }
     if n == "thin":
         base["privacy_upload"] = "off"
@@ -144,6 +145,15 @@ def _profile_defaults(name: str) -> dict[str, Any]:
         base["privacy"] = True
         base["privacy_upload"] = "deny"
         base["require_spawn_model"] = "deny"
+    elif n == "yolo":
+        # Opposite of max: soft guards; project deny + catastrophic fs still on.
+        base["yolo"] = True
+        base["privacy_upload"] = "off"
+        base["require_spawn_model"] = "off"
+        base["strict"] = False
+        base["privacy"] = False
+        base["orchestrate"] = False
+        base["il"] = False
     return base
 
 

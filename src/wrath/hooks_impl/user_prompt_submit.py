@@ -10,6 +10,7 @@ from wrath.modes.drive import drive_system_message
 from wrath.modes.il import IL_BODY
 from wrath.modes.orchestrate import ORCHESTRATE_BODY
 from wrath.modes.privacy import PRIVACY_BODY
+from wrath.modes.yolo import YOLO_BODY
 from wrath.state import (
     get_profile,
     is_il,
@@ -17,18 +18,21 @@ from wrath.state import (
     is_privacy,
     is_strict,
     is_wrath_enabled,
+    is_yolo,
     parse_il_intent,
     parse_orchestrate_intent,
     parse_privacy_intent,
     parse_profile_intent,
     parse_strict_intent,
     parse_toggle_intent,
+    parse_yolo_intent,
     set_il,
     set_orchestrate,
     set_privacy,
     set_profile,
     set_strict,
     set_wrath_enabled,
+    set_yolo,
 )
 
 FLUFF = re.compile(
@@ -67,10 +71,31 @@ def main() -> int:
                         orchestrate=is_orchestrate(data),
                         il=is_il(data),
                         privacy=is_privacy(data),
+                        yolo=is_yolo(data, project=cfg),
                         profile=str(state.get("profile") or prof),
                     )
                 }
             )
+            return 0
+
+        yolo_intent = parse_yolo_intent(prompt)
+        if yolo_intent is not None:
+            state = set_yolo(yolo_intent, data_dir=data, source="user_prompt")
+            append_event(
+                data,
+                {
+                    "kind": "toggle",
+                    "session_id": he.session_id,
+                    "yolo": state.get("yolo"),
+                    "profile": state.get("profile"),
+                    "source": "user_prompt_yolo",
+                },
+            )
+            on = bool(state.get("yolo"))
+            msg = f"[Wrath yolo={'on' if on else 'off'}] Env WRATH_YOLO overrides state."
+            if on:
+                msg = f"{msg}\n{YOLO_BODY.strip()}"
+            emit({"systemMessage": msg})
             return 0
 
         priv = parse_privacy_intent(prompt)
@@ -182,6 +207,7 @@ def main() -> int:
                         orchestrate=is_orchestrate(data),
                         il=is_il(data),
                         privacy=is_privacy(data),
+                        yolo=is_yolo(data, project=cfg),
                         profile=get_profile(data, project=cfg),
                     )
                 }

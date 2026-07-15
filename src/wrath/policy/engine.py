@@ -67,18 +67,26 @@ def evaluate(
     strict: bool | None = None,
     orchestrate: bool = False,
     privacy: bool = False,
+    yolo: bool = False,
 ) -> Decision:
     tool_input = tool_input or {}
     raw_name = (tool or "").strip()
     name = canonicalize_tool(raw_name) or raw_name
     cmd = (command or "").strip()
-    use_strict = bool(strict) if strict is not None else bool(config and config.strict)
+    # yolo: opposite of max — no strict, no privacy bulk, soft allow footguns
+    if yolo:
+        privacy = False
+        use_strict = False
+    else:
+        use_strict = bool(strict) if strict is not None else bool(config and config.strict)
 
     # Spawn orch gate (non-shell) — keep first warn Decision for rule_id
     spawn_mode = "off"
     if config:
         spawn_mode = config.require_spawn_model
-    if orchestrate and spawn_mode == "off":
+    if yolo:
+        spawn_mode = "off"
+    elif orchestrate and spawn_mode == "off":
         spawn_mode = "warn"
     # Check both raw and canonical names (Task vs spawn_subagent)
     spawn_d = check_spawn_model(raw_name, tool_input, orchestrate=orchestrate, mode=spawn_mode)
@@ -103,6 +111,7 @@ def evaluate(
             config=config,
             strict=use_strict,
             privacy=privacy,
+            yolo=yolo,
         )
         if not shell_d.allow:
             return shell_d
@@ -145,6 +154,7 @@ def _eval_shell(
     config: EffectiveConfig | None,
     strict: bool,
     privacy: bool,
+    yolo: bool = False,
 ) -> Decision:
     if not cmd:
         return Decision(allow=True)
@@ -157,17 +167,20 @@ def _eval_shell(
     privacy_mode = "warn"
     if config:
         privacy_mode = config.privacy_upload
-    if privacy and privacy_mode == "warn":
+    if yolo:
+        privacy_mode = "off"
+    elif privacy and privacy_mode == "warn":
         privacy_mode = "deny"
 
     for layer in layers:
         for seg in split_shell_segments(layer):
-            d = _eval_shell_segment(seg, strict=strict, privacy_mode=privacy_mode)
+            d = _eval_shell_segment(seg, strict=strict, privacy_mode=privacy_mode, yolo=yolo)
             if not d.allow:
                 return d
             if d.warning and warn_dec is None:
                 warn_dec = d
 
+    # Project deny always applies (even yolo) — explicit repo red lines.
     pd = check_project_deny(cmd, config)
     if pd:
         return pd
@@ -177,27 +190,52 @@ def _eval_shell(
     return Decision(allow=True)
 
 
-def _eval_shell_segment(cmd: str, *, strict: bool, privacy_mode: str) -> Decision:
+def _eval_shell_segment(
+    cmd: str, *, strict: bool, privacy_mode: str, yolo: bool = False
+) -> Decision:
+    # Catastrophic fs always checked first.
+    d = check_destructive(cmd)
+    if d is not None:
+        if not d.allow:
+            return d
+        # warn-only destructive (chmod 777, rm -rf subdir)
+        if not yolo:
+            rest = _eval_shell_segment_denies_only(cmd, strict=strict, yolo=False)
+            if rest and not rest.allow:
+                return rest
+            return d
+        # yolo: keep warn, skip soft footgun denials below
+        return d
+
+    if yolo:
+        # Soft footguns allowed under yolo; privacy already off.
+        return Decision(allow=True)
+
     for fn in (
-        lambda c: check_destructive(c),
         lambda c: check_pipe_exec(c),
         lambda c: check_git(c, strict=strict),
         lambda c: check_infra(c, strict=strict),
         lambda c: check_privacy_upload(c, mode=privacy_mode),
     ):
-        d = fn(cmd)
-        if d is not None:
-            if not d.allow:
-                return d
-            # warn: keep scanning for harder denies, collect warn
-            rest = _eval_shell_segment_denies_only(cmd, strict=strict)
+        d2 = fn(cmd)
+        if d2 is not None:
+            if not d2.allow:
+                return d2
+            rest = _eval_shell_segment_denies_only(cmd, strict=strict, yolo=False)
             if rest and not rest.allow:
                 return rest
-            return d
+            return d2
     return Decision(allow=True)
 
 
-def _eval_shell_segment_denies_only(cmd: str, *, strict: bool) -> Decision | None:
+def _eval_shell_segment_denies_only(
+    cmd: str, *, strict: bool, yolo: bool = False
+) -> Decision | None:
+    if yolo:
+        d = check_destructive(cmd)
+        if d is not None and not d.allow:
+            return d
+        return None
     for fn in (
         lambda c: check_destructive(c),
         lambda c: check_pipe_exec(c),

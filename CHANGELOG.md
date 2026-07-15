@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0 - 2026-07-16
+
+### Added
+- **YOLO profile** (`yolo`): soft footguns opposite of `max` — force-push, `reset --hard`, `clean -fdx`, pipe-to-shell, bulk upload allowed
+- Still blocked under YOLO: root/home wipe, mkfs/dd, fork bomb, `.git/` writes, secrets→paste, project `deny`
+- `/wrath-yolo` · `WRATH_YOLO` · MCP `wrath_set_yolo` · profile `yolo` · status `yolo=on|off`
+
 ## 2.0.1 - 2026-07-16
 
 ### Removed

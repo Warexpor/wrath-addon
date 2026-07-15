@@ -20,8 +20,9 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 |------------------|--------|
 | `/wrath-on` · “turn wrath on” | Runtime **enabled** |
 | `/wrath-off` · “turn wrath off” | Runtime **disabled** |
-| `/wrath-profile <name>` | Profile: default·thin·strict·privacy·fleet·max |
+| `/wrath-profile <name>` | Profile: default·thin·strict·privacy·fleet·max·**yolo** |
 | `/wrath-privacy` | Privacy bulk-upload deny |
+| `/wrath-yolo` | YOLO soft guards (anti-max) |
 | `/wrath-strict` | STRICT state on/off |
 | `/wrath-orchestrate` | Fleet multi-model on/off |
 | `/wrath-il` | Agent-wire IL dialect on/off |
@@ -40,5 +41,6 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 | `/wrath-why` | wrath-why |
 | `/wrath-profile` | wrath-profile |
 | `/wrath-privacy` | wrath-privacy |
+| `/wrath-yolo` | wrath-yolo |
 
 If the user only said `/wrath`, reply with this table in ≤10 lines. Prefer MCP `wrath_status` / `wrath_doctor`.

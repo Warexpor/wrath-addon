@@ -62,6 +62,7 @@ def test_mcp_initialize_and_tools(tmp_path: Path):
     assert "wrath_status" in names
     assert "wrath_last_deny" in names
     assert "wrath_set_privacy" in names
+    assert "wrath_set_yolo" in names
     assert "wrath_set_profile" in names
     assert "wrath_session_report" in names
 

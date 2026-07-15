@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI: python set_enabled.py on|off|status|strict-*|orchestrate-*|il-*|privacy-*|profile <name>"""
+"""CLI: python set_enabled.py on|off|status|strict-*|orchestrate-*|il-*|privacy-*|yolo-*|profile"""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from toggle import (  # noqa: E402
     is_privacy,
     is_strict,
     is_wrath_enabled,
+    is_yolo,
     load_state,
     set_il,
     set_orchestrate,
@@ -25,6 +26,7 @@ from toggle import (  # noqa: E402
     set_profile,
     set_strict,
     set_wrath_enabled,
+    set_yolo,
 )
 
 
@@ -33,7 +35,7 @@ def main(argv: list[str]) -> int:
         print(
             "usage: set_enabled.py on|off|status|strict-on|strict-off|"
             "orchestrate-on|orchestrate-off|il-on|il-off|"
-            "privacy-on|privacy-off|profile <name>",
+            "privacy-on|privacy-off|yolo-on|yolo-off|profile <name>",
             file=sys.stderr,
         )
         return 2
@@ -50,6 +52,7 @@ def main(argv: list[str]) -> int:
                     "orchestrate": is_orchestrate(),
                     "il": is_il(),
                     "privacy": is_privacy(),
+                    "yolo": is_yolo(project=cfg),
                     "state": state,
                     "project_config": str(cfg.path) if cfg.path else None,
                 },
@@ -86,6 +89,12 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd in ("privacy-off", "privacy_off"):
         print(json.dumps(set_privacy(False, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd in ("yolo-on", "yolo_on", "yolo"):
+        print(json.dumps(set_yolo(True, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd in ("yolo-off", "yolo_off"):
+        print(json.dumps(set_yolo(False, source="set_enabled.py"), indent=2))
         return 0
     if cmd == "profile":
         if len(argv) < 2:

@@ -24,12 +24,14 @@ from wrath.state import (
     is_privacy,
     is_strict,
     is_wrath_enabled,
+    is_yolo,
     load_state,
     set_il,
     set_orchestrate,
     set_privacy,
     set_profile,
     set_wrath_enabled,
+    set_yolo,
 )
 
 
@@ -166,8 +168,17 @@ TOOLS = [
         },
     },
     {
+        "name": "wrath_set_yolo",
+        "description": "Enable or disable YOLO soft-guard profile (allows force-push/reset/pipe).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"yolo": {"type": "boolean"}},
+            "required": ["yolo"],
+        },
+    },
+    {
         "name": "wrath_set_profile",
-        "description": "Set profile: default|thin|strict|privacy|fleet|max.",
+        "description": "Set profile: default|thin|strict|privacy|fleet|max|yolo.",
         "inputSchema": {
             "type": "object",
             "properties": {"profile": {"type": "string"}},
@@ -225,6 +236,7 @@ def handle_tool(name: str, args: dict) -> str:
                 "orchestrate": is_orchestrate(d),
                 "il": is_il(d),
                 "privacy": is_privacy(d),
+                "yolo": is_yolo(d, project=cfg),
                 "budget_tools": budget_tools_effective(cfg),
                 "reread_warn": reread_warn_effective(cfg),
                 "privacy_upload": cfg.privacy_upload,
@@ -273,6 +285,8 @@ def handle_tool(name: str, args: dict) -> str:
             set_privacy(bool(args.get("privacy")), data_dir=d, source="mcp"),
             indent=2,
         )
+    if name == "wrath_set_yolo":
+        return json.dumps(set_yolo(bool(args.get("yolo")), data_dir=d, source="mcp"), indent=2)
     if name == "wrath_set_profile":
         return json.dumps(
             set_profile(str(args.get("profile") or "default"), data_dir=d, source="mcp"),
@@ -289,6 +303,7 @@ def handle_tool(name: str, args: dict) -> str:
                 "orchestrate": is_orchestrate(d),
                 "il": is_il(d),
                 "privacy": is_privacy(d),
+                "yolo": is_yolo(d, project=cfg),
                 "budget_tools": budget_tools_effective(cfg),
                 "reread_warn": reread_warn_effective(cfg),
                 "nested_shell_depth": cfg.nested_shell_depth,
@@ -345,6 +360,7 @@ def handle_tool(name: str, args: dict) -> str:
                 "orchestrate": is_orchestrate(d),
                 "il": is_il(d),
                 "privacy": is_privacy(d),
+                "yolo": is_yolo(d, project=cfg),
                 "state": load_state(d),
                 "project_config": str(cfg.path) if cfg.path else None,
                 "hooks_json": hooks.is_file(),
@@ -386,6 +402,7 @@ def handle_tool(name: str, args: dict) -> str:
             strict=is_strict(d, project=cfg),
             orchestrate=is_orchestrate(d),
             privacy=is_privacy(d),
+            yolo=is_yolo(d, project=cfg),
         )
         return json.dumps(
             {
@@ -399,6 +416,7 @@ def handle_tool(name: str, args: dict) -> str:
                 "enabled": is_wrath_enabled(d),
                 "strict": is_strict(d, project=cfg),
                 "privacy": is_privacy(d),
+                "yolo": is_yolo(d, project=cfg),
                 "orchestrate": is_orchestrate(d),
             },
             indent=2,
@@ -431,6 +449,7 @@ def handle_tool(name: str, args: dict) -> str:
                     "orchestrate": is_orchestrate(d),
                     "il": is_il(d),
                     "privacy": is_privacy(d),
+                    "yolo": is_yolo(d, project=cfg),
                 },
             },
             indent=2,

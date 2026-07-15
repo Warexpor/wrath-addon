@@ -1,7 +1,7 @@
 {
   "name": "wrath",
-  "version": "2.0.1",
-  "description": "Wrath V2 for Grok Build: control plane — profiles, policy engine, full lifecycle journal, privacy/fleet/IL, /wrath-* + MCP (GPLv3)",
+  "version": "2.1.0",
+  "description": "Wrath V2 for Grok Build: control plane — profiles (incl. yolo), policy, lifecycle journal, privacy/fleet/IL, /wrath-* + MCP (GPLv3)",
   "author": {
     "name": "Warexpor"
   },

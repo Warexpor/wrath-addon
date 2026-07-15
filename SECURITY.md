@@ -8,6 +8,7 @@ Wrath is a **heuristic** PreToolUse + lifecycle guard for Grok Build, not an OS 
 - Project deny regexes
 - Secret-path paste heuristics
 - Privacy bulk pack/upload patterns (profile-dependent)
+- YOLO profile: soft footguns (force-push / hard reset / pipe / bulk upload) while keeping catastrophic fs + project deny
 - Orchestrate spawn without `model=` (warn/deny)
 - Journal of Wrath denials **and** harness `PermissionDenied`
 

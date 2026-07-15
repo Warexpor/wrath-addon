@@ -18,6 +18,7 @@ DEFAULT_STRICT = False
 DEFAULT_ORCHESTRATE = False
 DEFAULT_IL = False
 DEFAULT_PRIVACY = False
+DEFAULT_YOLO = False
 DEFAULT_PROFILE = "default"
 
 ENV_FORCE_OFF = "WRATH_OFF"
@@ -26,6 +27,7 @@ ENV_STRICT = "WRATH_STRICT"
 ENV_ORCHESTRATE = "WRATH_ORCHESTRATE"
 ENV_IL = "WRATH_IL"
 ENV_PRIVACY = "WRATH_PRIVACY"
+ENV_YOLO = "WRATH_YOLO"
 
 
 def state_path(data_dir: Path | None = None) -> Path:
@@ -39,6 +41,7 @@ def _defaults() -> dict[str, Any]:
         "orchestrate": DEFAULT_ORCHESTRATE,
         "il": DEFAULT_IL,
         "privacy": DEFAULT_PRIVACY,
+        "yolo": DEFAULT_YOLO,
         "profile": DEFAULT_PROFILE,
     }
 
@@ -79,6 +82,7 @@ def _preserve(prev: dict[str, Any], **overrides: Any) -> dict[str, Any]:
         "orchestrate": bool(prev.get("orchestrate", DEFAULT_ORCHESTRATE)),
         "il": bool(prev.get("il", DEFAULT_IL)),
         "privacy": bool(prev.get("privacy", DEFAULT_PRIVACY)),
+        "yolo": bool(prev.get("yolo", DEFAULT_YOLO)),
         "profile": str(prev.get("profile") or DEFAULT_PROFILE),
     }
     base.update(overrides)
@@ -159,7 +163,48 @@ def is_privacy(data_dir: Path | None = None) -> bool:
 def set_privacy(privacy: bool, data_dir: Path | None = None, source: str = "cli") -> dict[str, Any]:
     data = data_dir or plugin_data()
     prev = load_state(data)
-    return _write_state(data, _preserve(prev, privacy=bool(privacy), source=source))
+    # privacy and yolo are opposites for soft bulk-upload policy
+    kwargs: dict[str, Any] = {"privacy": bool(privacy), "source": source}
+    if privacy:
+        kwargs["yolo"] = False
+        if str(prev.get("profile") or "") == "yolo":
+            kwargs["profile"] = "default"
+    return _write_state(data, _preserve(prev, **kwargs))
+
+
+def is_yolo(data_dir: Path | None = None, project: EffectiveConfig | None = None) -> bool:
+    """Precedence: env WRATH_YOLO if set → else state.yolo OR profile==yolo."""
+    env = os.environ.get(ENV_YOLO)
+    if env is not None and str(env).strip() != "":
+        return str(env).strip().lower() in {"1", "true", "yes", "on"}
+    if bool(load_state(data_dir).get("yolo", DEFAULT_YOLO)):
+        return True
+    return get_profile(data_dir, project=project) == "yolo"
+
+
+def set_yolo(yolo: bool, data_dir: Path | None = None, source: str = "cli") -> dict[str, Any]:
+    data = data_dir or plugin_data()
+    prev = load_state(data)
+    if yolo:
+        return _write_state(
+            data,
+            _preserve(
+                prev,
+                yolo=True,
+                privacy=False,
+                strict=False,
+                profile="yolo",
+                source=source,
+            ),
+        )
+    # leave profile as default if was yolo
+    prof = str(prev.get("profile") or DEFAULT_PROFILE)
+    if prof == "yolo":
+        prof = "default"
+    return _write_state(
+        data,
+        _preserve(prev, yolo=False, profile=prof, source=source),
+    )
 
 
 def get_profile(data_dir: Path | None = None, project: EffectiveConfig | None = None) -> str:
@@ -186,6 +231,7 @@ def set_profile(profile: str, data_dir: Path | None = None, source: str = "cli")
         orchestrate=bool(pdata.get("orchestrate")),
         il=bool(pdata.get("il")),
         privacy=bool(pdata.get("privacy")),
+        yolo=bool(pdata.get("yolo")),
         source=source,
     )
     return _write_state(data, payload)
@@ -207,6 +253,8 @@ def parse_toggle_intent(text: str) -> bool | None:
     ):
         return None
     if re.search(r"\bprivacy\b", t) or re.search(r"\bprofile\b", t):
+        return None
+    if re.search(r"\byolo\b", t):
         return None
 
     brand = r"(?:wrath|vanta|forge)"
@@ -360,4 +408,27 @@ def parse_profile_intent(text: str) -> str | None:
     m = re.search(r"\bprofile\s+(\w+)\b", t)
     if m and m.group(1) in PROFILES and re.search(r"wrath|profile", t):
         return m.group(1)
+    return None
+
+
+def parse_yolo_intent(text: str) -> bool | None:
+    """Return True=yolo on, False=off, None=no intent."""
+    t = (text or "").strip().lower()
+    if not t:
+        return None
+    t = re.sub(r"^/", "", t)
+    if re.search(r"\bwrath[\s_-]*yolo[\s_-]*off\b", t) or re.search(
+        r"\bdisable\s+wrath\s+yolo\b", t
+    ):
+        return False
+    if re.search(r"\byolo[\s_-]*off\b", t) or re.search(r"\bdisable\s+yolo\b", t):
+        return False
+    if (
+        re.search(r"\bwrath[\s_-]*yolo\b", t)
+        or re.search(r"\benable\s+wrath\s+yolo\b", t)
+        or re.search(r"\byolo[\s_-]*on\b", t)
+        or re.search(r"\benable\s+yolo\b", t)
+        or re.search(r"(?:^|\b)yolo\s*$", t)
+    ):
+        return True
     return None

@@ -89,6 +89,7 @@ def test_session_start_has_drive(tmp_path: Path):
     assert "orch=" in msg
     assert "il=" in msg
     assert "privacy=" in msg
+    assert "yolo=" in msg
     assert "profile=" in msg
 
 
@@ -135,6 +136,18 @@ def test_session_start_privacy_injects_body(tmp_path: Path):
     msg = res["systemMessage"]
     assert "privacy=on" in msg
     assert "PRIVACY" in msg
+
+
+def test_session_start_yolo_injects_body(tmp_path: Path):
+    from toggle import set_yolo
+
+    data = tmp_path / "data"
+    data.mkdir(exist_ok=True)
+    set_yolo(True, data_dir=data, source="test")
+    res = _run_hook("session_start.py", {}, tmp_path)
+    msg = res["systemMessage"]
+    assert "yolo=on" in msg
+    assert "YOLO" in msg
 
 
 def test_pre_deny_nested_powershell_bash(tmp_path: Path):

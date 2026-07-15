@@ -12,6 +12,7 @@ from wrath.state import (
     is_privacy,
     is_strict,
     is_wrath_enabled,
+    is_yolo,
 )
 
 
@@ -27,6 +28,7 @@ def main() -> int:
         orchestrate = is_orchestrate(data)
         il = is_il(data)
         privacy = is_privacy(data)
+        yolo = is_yolo(data, project=cfg)
         profile = get_profile(data, project=cfg)
         budget = budget_tools_effective(cfg)
         append_event(
@@ -39,6 +41,7 @@ def main() -> int:
                 "orchestrate": orchestrate,
                 "il": il,
                 "privacy": privacy,
+                "yolo": yolo,
                 "profile": profile,
             },
         )
@@ -52,6 +55,7 @@ def main() -> int:
                     orchestrate=orchestrate,
                     il=il,
                     privacy=privacy,
+                    yolo=yolo,
                     profile=profile,
                 )
             }

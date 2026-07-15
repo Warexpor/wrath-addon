@@ -2,7 +2,8 @@
 
 - Prefer MCP `wrath_status` / `wrath_doctor` / `wrath_last_deny` over guessing.
 - Footgun guards are active; do not fight denials — use overrides only with user intent.
-- Profiles: default · thin · strict · privacy · fleet · max.
+- Profiles: default · thin · strict · privacy · fleet · max · yolo.
+- YOLO: soft footguns; still respect project deny + catastrophic fs. Confirm blast radius.
 - Orchestrate: pin `model=` on every `spawn_subagent`.
 - Privacy: no bulk repo/home pack-upload unless user ordered it.
 - Cold drive: key point first, verify before done, grep before re-read.

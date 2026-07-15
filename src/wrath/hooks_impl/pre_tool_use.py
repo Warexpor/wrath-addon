@@ -16,7 +16,7 @@ from wrath.io import (
 )
 from wrath.journal import append_event, count_tool_path
 from wrath.policy import READ_TOOLS, evaluate
-from wrath.state import is_orchestrate, is_privacy, is_strict, is_wrath_enabled
+from wrath.state import is_orchestrate, is_privacy, is_strict, is_wrath_enabled, is_yolo
 
 
 def main() -> int:
@@ -32,6 +32,7 @@ def main() -> int:
         strict = is_strict(data, project=cfg)
         orch = is_orchestrate(data)
         privacy = is_privacy(data)
+        yolo = is_yolo(data, project=cfg)
         name = he.tool_name
         cmd = he.shell_command
         ti = he.tool_input
@@ -43,6 +44,7 @@ def main() -> int:
             strict=strict,
             orchestrate=orch,
             privacy=privacy,
+            yolo=yolo,
         )
 
         if not decision.allow:
