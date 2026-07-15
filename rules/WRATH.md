@@ -7,14 +7,15 @@ Install with `install.ps1 -Rules` to copy into `~/.grok/rules/wrath.md`.
 - Cold, brief, ship. Key point first.
 - Verify before done. No green without evidence.
 - YAGNI ladder: need → reuse → stdlib → one line → min code.
-- Delete > add. Fewest files.
 
 ## Safety
 
-Wrath hooks block: root-wiping deletes, Format-Volume, force-push to main/master, `git reset --hard`, aggressive `git clean`, remote pipe-to-shell — unless override envs are set.
+Hooks block root wipes, Format-Volume, force-push main, reset --hard, git clean -fdx, remote pipe-to-shell, writes into `.git/`. Nested `powershell -Command` / `bash -c` unwrapped one level.
 
-Strict mode: `WRATH_STRICT=1` also blocks SQL DROP and common infra destroy commands.
+Project: optional `.wrath.toml` / `.wrath.json` (`deny`, `budget_tools`, `reread_warn`, `strict`).
+
+Strict: `/wrath-strict` or `WRATH_STRICT=1`.
 
 ## Workflows
 
-`/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-status` `/wrath-doctor` `/wrath-review`
+`/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-status` `/wrath-doctor` `/wrath-review` `/wrath-strict` `/wrath-why`

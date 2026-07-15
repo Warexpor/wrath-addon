@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart: inject Wrath drive pack + ensure data dir."""
+"""SessionStart: status line + drive pack."""
 
 from __future__ import annotations
 
@@ -11,35 +11,42 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import emit, log_hook_error, plugin_data, read_stdin_json  # noqa: E402
 from drive_pack import drive_system_message  # noqa: E402
 from journal import append_event, session_id_from_env  # noqa: E402
+from project_config import (  # noqa: E402
+    budget_tools_effective,
+    discover_start,
+    load_project_config,
+)
 
 
 def main() -> int:
     try:
         event = read_stdin_json()
         data = plugin_data()
-        from toggle import is_wrath_enabled  # local import after path setup
+        from toggle import is_strict, is_wrath_enabled
 
+        cfg = load_project_config(discover_start(event))
         enabled = is_wrath_enabled(data)
+        strict = is_strict(data, project=cfg)
+        budget = budget_tools_effective(cfg)
         append_event(
             data,
             {
                 "kind": "session_start",
                 "session_id": session_id_from_env(event),
                 "enabled": enabled,
+                "strict": strict,
             },
         )
-        if not enabled:
-            emit(
-                {
-                    "systemMessage": (
-                        "[Wrath mode — OFF] Guards, drive pack, and prompt nudges are disabled. "
-                        "Say “turn wrath on” or run /wrath-on to re-enable. "
-                        "(Plugin still loaded; only runtime flag is off.)"
-                    )
-                }
-            )
-            return 0
-        emit({"systemMessage": drive_system_message()})
+        emit(
+            {
+                "systemMessage": drive_system_message(
+                    enabled=enabled,
+                    strict=strict,
+                    budget=budget,
+                    config_path=cfg.path,
+                )
+            }
+        )
     except Exception as exc:  # noqa: BLE001 — fail-open
         log_hook_error("SessionStart", exc)
         emit({"systemMessage": f"Wrath SessionStart note: {exc}"})

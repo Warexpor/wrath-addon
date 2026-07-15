@@ -5,14 +5,10 @@ description: Show Wrath plugin session health and recent journal events. Use for
 
 # wrath-status
 
-1. Prefer MCP `wrath_doctor` + `wrath_journal_tail` (n=12).
-2. Else:
-
-```text
-python hooks/set_enabled.py status
-```
-
-and tail `journal.jsonl` under `GROK_PLUGIN_DATA` or `~/.wrath-addon/data`.
-
-3. Report ≤8 bullets: **enabled?**, plugin present?, journal path, last events, deny count, any MCP issues.
+1. Prefer MCP in this order:
+   - `wrath_config` — enabled, strict, budget, project config
+   - `wrath_doctor` — paths + MCP absolute path + policy smoke
+   - `wrath_journal_tail` with `n=12`
+2. Only if MCP unavailable: `python hooks/set_enabled.py status` and tail journal under `GROK_PLUGIN_DATA` or `~/.wrath-addon/data`.
+3. Report ≤8 bullets: **enabled?**, **strict?**, version, config path, journal denials, MCP fix if any.
 4. Do not invent metrics.

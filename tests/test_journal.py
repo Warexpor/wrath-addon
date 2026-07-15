@@ -34,3 +34,22 @@ def test_session_stats(tmp_path: Path):
     assert stats["events"] == 4
     assert stats["tool_histogram"]["read_file"] == 2
     assert stats["deny_count"] == 1
+
+
+def test_count_tool_path(tmp_path: Path):
+    from journal import count_tool_path
+
+    append_event(
+        tmp_path,
+        {"kind": "tool", "tool": "read_file", "path": "src/a.py", "session_id": "s1"},
+    )
+    append_event(
+        tmp_path,
+        {"kind": "tool", "tool": "read_file", "path": "src/a.py", "session_id": "s1"},
+    )
+    append_event(
+        tmp_path,
+        {"kind": "tool", "tool": "read_file", "path": "src/b.py", "session_id": "s1"},
+    )
+    assert count_tool_path(tmp_path, "s1", "src/a.py") == 2
+    assert count_tool_path(tmp_path, "s1", "src/b.py") == 1

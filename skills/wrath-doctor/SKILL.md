@@ -5,12 +5,8 @@ description: Diagnose Wrath plugin install (hooks, python, MCP, data dir). Use f
 
 # wrath-doctor
 
-1. Prefer MCP `wrath_doctor` if available — print its JSON fields as a checklist.
-2. Else check:
-   - `python --version`
-   - Plugin root (`GROK_PLUGIN_ROOT` or installed-plugins path with `mcp/run.py`)
-   - `hooks/hooks.json` and `hooks/pre_tool_use.py`
-   - Data dir writable (`GROK_PLUGIN_DATA` or `~/.wrath-addon/data`)
-   - `.mcp.json` args point at an existing `run.py` (absolute preferred)
-3. Dry-run: MCP `wrath_policy_check` with `rm -rf /` (expect deny) and `git status` (expect allow).
-4. Pass/fail only. Fix: `.\install.ps1` or `grok plugin install <path> --trust` then reload plugins.
+1. Call MCP `wrath_doctor` — treat JSON as checklist.
+2. Call MCP `wrath_config` for effective strict/budget/project file.
+3. If `mcp_args_absolute` is false or `mcp_run_exists` is false: run the `fix` field (usually `.\install.ps1`) then reload plugins.
+4. Smoke: MCP `wrath_policy_check` with `rm -rf /` (deny) and `git status` (allow).
+5. Pass/fail bullets only. No essay.

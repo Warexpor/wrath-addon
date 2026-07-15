@@ -1,7 +1,7 @@
 {
   "name": "wrath",
-  "version": "1.0.1",
-  "description": "Wrath for Grok Build: cold drive, real on/off, hardened footgun guards, journal + session stats, /wrath-* workflows, local MCP (GPLv3)",
+  "version": "1.1.0",
+  "description": "Wrath for Grok Build: cold drive, project config, nested-shell guards, journal/re-read warn, /wrath-* + MCP (GPLv3)",
   "author": {
     "name": "Warexpor"
   },

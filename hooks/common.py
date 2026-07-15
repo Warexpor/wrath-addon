@@ -182,6 +182,14 @@ def split_shell_segments(cmd: str) -> list[str]:
     return parts or [cmd.strip()]
 
 
+def normalize_path_key(path: str) -> str:
+    """Normalize path for re-read counting."""
+    p = (path or "").replace("\\", "/").strip()
+    while "//" in p:
+        p = p.replace("//", "/")
+    return p.rstrip("/").lower()
+
+
 def looks_like_secret_path(path: str) -> bool:
     """Heuristic sensitive paths (.env*, keys, cloud credentials)."""
     p = (path or "").replace("\\", "/").rstrip("/")

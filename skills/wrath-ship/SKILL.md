@@ -10,4 +10,8 @@ description: Finish work for ship/commit/PR. Use for /wrath-ship, ready to commi
 3. Draft a commit message: complete sentences, why + what, no fake coauthors.
 4. Do **not** commit or push unless the user explicitly asked.
 5. If they asked to commit: stage only relevant files, commit, show hash.
-6. Hard-to-reverse (force push, reset --hard): refuse unless they reconfirm; Wrath hooks may already block.
+6. **Hard-to-reverse — refuse unless reconfirmed:**
+   - `git push --force` / `-f` (especially main/master)
+   - `git reset --hard`
+   - `git clean -fdx`
+   Wrath PreToolUse may already deny these; do not try workarounds.

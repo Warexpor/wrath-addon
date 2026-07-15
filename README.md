@@ -1,8 +1,8 @@
 # Wrath — Grok Build addon
 
-**GPLv3.** Makes stock [Grok Build](https://x.ai) sharper: cold drive, real on/off, hardened footgun guards, JSONL journal + session stats, `/wrath-*` workflows, local MCP.
+**GPLv3.** Cold drive, real on/off, footgun guards, journal, project config, `/wrath-*` workflows, local MCP.
 
-Not a second agent runtime. Stays inside `grok`. Heuristic guards — not a full sandbox (see [SECURITY.md](SECURITY.md)).
+Not a second agent runtime. Heuristic guards — not a full sandbox ([SECURITY.md](SECURITY.md)).
 
 ## Install
 
@@ -10,60 +10,50 @@ Not a second agent runtime. Stays inside `grok`. Heuristic guards — not a full
 git clone https://github.com/Warexpor/wrath-addon.git
 cd wrath-addon
 .\install.ps1
-# optional rules pack into ~/.grok/rules
-.\install.ps1 -Rules
+.\install.ps1 -Rules   # optional ~/.grok/rules
 ```
 
-Or:
+Or: `grok plugin install . --trust` then reload plugins.
 
-```powershell
-grok plugin validate .
-grok plugin install . --trust
-```
-
-`install.ps1` uninstalls+reinstalls (local installs are copies) and **patches MCP to an absolute `run.py` path** so the server starts even when Grok’s cwd is not the plugin root.
-
-Reload plugins in the TUI (`Ctrl+L` → Plugins → `r`) or start a new session.
+`install.ps1` reinstalls and **patches MCP to an absolute `run.py` path**.
 
 ## What you get
 
 | Piece | Effect |
 |-------|--------|
-| SessionStart drive pack | Brief / verify / YAGNI every session (when ON) |
-| PreToolUse guards | Blocks root wipes, Format-Volume, force-push main, `reset --hard`, `git clean -fdx`, `curl\|sh` / `iwr\|iex`, drive-root `rd`/`del` (when ON) |
-| Multi-command awareness | Policy evaluates `;` / `&&` / `\|\|` segments |
-| **On/off flag** | “turn wrath on/off”, `/wrath-on`, `/wrath-off` — real hook skip |
-| Journal | Tool/deny/fail/stop events; rotation; efficient tail |
-| Skills | `/wrath` `/wrath-on` `/wrath-off` `/wrath-status` `/wrath-thin` `/wrath-check` `/wrath-budget` `/wrath-ship` `/wrath-doctor` `/wrath-review` |
-| Agents | `wrath-reviewer`, `wrath-explorer` |
-| MCP `wrath` | `wrath_journal_tail`, `wrath_doctor`, `wrath_budget_tips`, `wrath_set_enabled`, `wrath_policy_check`, `wrath_session_stats` |
+| SessionStart | Status line (version · ON/OFF · strict · budget · config) + short drive pack |
+| PreToolUse | Footguns + nested `powershell`/`bash -c` unwrap + `.git/` write block |
+| Project config | `.wrath.toml` or `.wrath.json` in repo |
+| Re-read warn | Soft warn after N same-path reads (default 3) |
+| Skills | `/wrath-*` including `/wrath-strict` `/wrath-why` |
+| MCP | doctor, config, policy_check, journal_tail, session_stats, set_enabled |
 
-### On / off
+### Project config (optional)
 
-```text
-turn wrath off          # UserPromptSubmit sets flag → guards stop
-turn wrath on
-/wrath-off
-/wrath-on
-python hooks/set_enabled.py status|on|off
+```toml
+# .wrath.toml  (or .wrath.json)
+strict = false
+budget_tools = 80
+reread_warn = 3          # 0 = off
+deny = ["\\bnuke-prod\\b"]
 ```
 
-Flag file: `$GROK_PLUGIN_DATA/wrath_state.json` (or `~/.wrath-addon/data/wrath_state.json`).
-
-Full unload: `grok plugin disable wrath`.
+Walks up from cwd / `GROK_PROJECT_DIR`.
 
 ### Overrides
 
 | Env | Effect |
 |-----|--------|
-| `WRATH_ALLOW_FORCE=1` | Allow force-push to main/master (and STRICT force-push) |
+| `WRATH_ALLOW_FORCE=1` | Allow force-push main/master |
 | `WRATH_ALLOW_HARD=1` | Allow `git reset --hard` |
 | `WRATH_ALLOW_CLEAN=1` | Allow `git clean -f[dx]` |
-| `WRATH_ALLOW_PIPE_EXEC=1` | Allow `curl\|bash` / `iwr\|iex` |
-| `WRATH_STRICT=1` | SQL DROP, infra destroy, force-push when branch omitted |
-| `WRATH_BUDGET_TOOLS=N` | Soft stop-hook budget nudge after N tool events (default 80) |
-| `WRATH_OFF=1` | Force runtime off (env) |
-| `WRATH_ON=1` | Force runtime on (env) |
+| `WRATH_ALLOW_PIPE_EXEC=1` | Allow curl\|bash / iwr\|iex |
+| `WRATH_STRICT=1` | Env force STRICT (overrides state) |
+| `WRATH_BUDGET_TOOLS=N` | Budget nudge threshold |
+| `WRATH_REREAD_WARN=N` | Re-read warn threshold |
+| `WRATH_OFF=1` / `WRATH_ON=1` | Force runtime off/on |
+
+**Strict precedence:** env (if set) → state (`/wrath-strict`) OR project `strict`.
 
 ## Verify
 
@@ -73,20 +63,6 @@ ruff check hooks mcp tests
 grok plugin details wrath
 ```
 
-## Layout
-
-```
-wrath-addon/
-  .claude-plugin/plugin.json   # version single source
-  hooks/          # policy + journal + lifecycle
-  skills/         # /wrath-*
-  agents/
-  mcp/            # stdio MCP (cwd-independent launcher)
-  rules/WRATH.md
-  install.ps1
-  LICENSE         # GPL-3.0
-```
-
 ## License
 
-[GNU General Public License v3.0 or later](LICENSE).
+[GPL-3.0-or-later](LICENSE).

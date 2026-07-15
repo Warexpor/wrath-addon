@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PostToolUse: journal tool activity (never blocks)."""
+"""PostToolUse: journal tool activity with path (never blocks)."""
 
 from __future__ import annotations
 
@@ -13,9 +13,11 @@ from common import (  # noqa: E402
     plugin_data,
     read_stdin_json,
     shell_command,
+    tool_input,
     tool_name,
 )
 from journal import append_event, session_id_from_env  # noqa: E402
+from policy import tool_path  # noqa: E402
 
 
 def main() -> int:
@@ -27,6 +29,8 @@ def main() -> int:
             return 0
         name = tool_name(event)
         cmd = shell_command(event)
+        ti = tool_input(event)
+        path = tool_path(ti) or None
         append_event(
             plugin_data(),
             {
@@ -34,6 +38,7 @@ def main() -> int:
                 "session_id": session_id_from_env(event),
                 "tool": name,
                 "command": (cmd or "")[:300] or None,
+                "path": path,
             },
         )
     except Exception as exc:  # noqa: BLE001 — fail-open

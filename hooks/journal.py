@@ -214,3 +214,40 @@ def session_id_from_env(event: dict[str, Any] | None = None) -> str:
         if sid:
             return str(sid)
     return os.environ.get("GROK_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID") or "unknown"
+
+
+def count_tool_path(
+    data_dir: Path,
+    session_id: str,
+    path: str,
+    *,
+    kind: str = "tool",
+) -> int:
+    """Count journal tool events for the same normalized path in a session."""
+    from common import normalize_path_key
+
+    key = normalize_path_key(path)
+    if not key or session_id in ("", "unknown"):
+        # still count unknown session locally if path matches
+        pass
+    jp = journal_path(data_dir)
+    if not jp.is_file() or not key:
+        return 0
+    n = 0
+    with jp.open("r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if (row.get("kind") or row.get("type")) != kind:
+                continue
+            if session_id and session_id != "unknown":
+                if str(row.get("session_id") or "") != session_id:
+                    continue
+            row_path = normalize_path_key(str(row.get("path") or ""))
+            if row_path == key:
+                n += 1
+    return n

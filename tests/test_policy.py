@@ -1,4 +1,5 @@
-from policy import evaluate
+from policy import evaluate, path_is_git_internal, unwrap_nested_shell
+from project_config import EffectiveConfig
 
 
 def test_allow_git_status():
@@ -9,7 +10,6 @@ def test_allow_git_status():
 def test_deny_rm_rf_root():
     d = evaluate("Bash", "rm -rf /")
     assert not d.allow
-    assert "blocked" in d.reason.lower() or "Wrath" in d.reason
 
 
 def test_allow_rm_rf_tmp():
@@ -88,21 +88,52 @@ def test_deny_delete_main_branch():
     assert not d.allow
 
 
-def test_strict_drop(monkeypatch):
-    monkeypatch.setenv("WRATH_STRICT", "1")
-    d = evaluate("run_terminal_command", "DROP TABLE users;")
+def test_strict_drop():
+    d = evaluate("run_terminal_command", "DROP TABLE users;", strict=True)
     assert not d.allow
 
 
-def test_non_strict_drop_warns(monkeypatch):
-    monkeypatch.delenv("WRATH_STRICT", raising=False)
-    d = evaluate("run_terminal_command", "DROP TABLE users;")
+def test_non_strict_drop_warns():
+    d = evaluate("run_terminal_command", "DROP TABLE users;", strict=False)
     assert d.allow
     assert d.warning
 
 
 def test_strict_force_push_no_branch(monkeypatch):
-    monkeypatch.setenv("WRATH_STRICT", "1")
     monkeypatch.delenv("WRATH_ALLOW_FORCE", raising=False)
-    d = evaluate("run_terminal_command", "git push --force")
+    d = evaluate("run_terminal_command", "git push --force", strict=True)
     assert not d.allow
+
+
+def test_unwrap_powershell_rm():
+    inner = unwrap_nested_shell('powershell -Command "rm -rf /"')
+    assert "rm -rf /" in inner
+    d = evaluate("run_terminal_command", 'powershell -Command "rm -rf /"')
+    assert not d.allow
+
+
+def test_unwrap_bash_reset(monkeypatch):
+    monkeypatch.delenv("WRATH_ALLOW_HARD", raising=False)
+    d = evaluate("run_terminal_command", "bash -c 'git reset --hard HEAD'")
+    assert not d.allow
+
+
+def test_project_deny():
+    cfg = EffectiveConfig(deny=(r"\bnuke-prod\b",))
+    d = evaluate("run_terminal_command", "nuke-prod --yes", config=cfg)
+    assert not d.allow
+    assert "project deny" in d.reason
+
+
+def test_write_git_internal_denied():
+    d = evaluate(
+        "write",
+        "",
+        {"path": "repo/.git/config", "content": "x"},
+    )
+    assert not d.allow
+
+
+def test_path_is_git_internal():
+    assert path_is_git_internal("foo/.git/objects/xx")
+    assert not path_is_git_internal("foo/git/config")

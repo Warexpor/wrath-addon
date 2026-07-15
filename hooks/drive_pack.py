@@ -1,18 +1,47 @@
-"""Compact Wrath drive pack injected on SessionStart."""
+"""Compact Wrath drive pack + status line for SessionStart."""
 
-DRIVE_PACK = """[Wrath mode — active for this session]
-Drive: cold, brief, ship. Key point first. No filler, banter, or ethics lectures.
-Ladder: need it? reuse? stdlib? one line? only then new code. Delete > add.
-Verify before done: run the real check or state why you cannot.
-Tools: read before write; smallest path; no re-read loops; no speculative refactors.
-Safety: PreToolUse blocks root wipes, Format-Volume, force-push main, reset --hard,
-  git clean -fdx, curl|sh (WRATH_ALLOW_FORCE / HARD / CLEAN / PIPE_EXEC).
-Strict: WRATH_STRICT=1 for DROP / infra destroy / force-push without branch.
-Workflows: /wrath-thin /wrath-check /wrath-budget /wrath-ship /wrath-status
-  /wrath-doctor /wrath-review
-MCP: wrath_journal_tail · wrath_doctor · wrath_policy_check · wrath_session_stats
+from __future__ import annotations
+
+from pathlib import Path
+
+from common import plugin_version
+
+DRIVE_BODY = """Drive: cold, brief, ship. Key point first. No filler.
+Ladder: need → reuse → stdlib → one line → min code. Delete > add.
+Verify before done. Grep before re-read. /wrath-thin · /wrath-check · /wrath-ship
+Safety: footgun guards on (force-push main, reset --hard, root wipe, curl|sh, …).
+Strict: /wrath-strict or WRATH_STRICT=1. Config: .wrath.toml / .wrath.json
+MCP: wrath_doctor · wrath_config · wrath_policy_check · wrath_journal_tail
 """
 
 
-def drive_system_message() -> str:
-    return DRIVE_PACK.strip()
+def status_line(
+    *,
+    enabled: bool,
+    strict: bool,
+    budget: int,
+    config_path: Path | None = None,
+    version: str | None = None,
+) -> str:
+    ver = version or plugin_version()
+    on = "ON" if enabled else "OFF"
+    st = "on" if strict else "off"
+    cfg = config_path.name if config_path else "none"
+    return f"[Wrath v{ver} · {on} · strict={st} · budget={budget} · config={cfg}]"
+
+
+def drive_system_message(
+    *,
+    enabled: bool = True,
+    strict: bool = False,
+    budget: int = 80,
+    config_path: Path | None = None,
+) -> str:
+    line = status_line(enabled=enabled, strict=strict, budget=budget, config_path=config_path)
+    if not enabled:
+        return (
+            f"{line}\n"
+            "Guards, drive pack, and prompt nudges are disabled. "
+            "/wrath-on or “turn wrath on” to re-enable."
+        )
+    return f"{line}\n{DRIVE_BODY.strip()}"

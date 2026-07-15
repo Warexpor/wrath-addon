@@ -1,6 +1,6 @@
 ---
 name: wrath
-description: Wrath addon hub for Grok Build. Use when the user says /wrath, asks what Wrath does, or wants the better Grok workflow (status, thin, check, budget, ship, doctor, review).
+description: Wrath addon hub for Grok Build. Use when the user says /wrath, asks what Wrath does, or wants the better Grok workflow.
 ---
 
 # Wrath hub
@@ -9,26 +9,23 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 
 ## What Wrath adds
 
-- Session drive: brief, verify, YAGNI (SessionStart pack)
-- PreToolUse guards: root wipes, Format-Volume, force-push main, reset --hard, git clean -fdx, curl|sh
-- Journal + session stats under plugin data
-- MCP tools for doctor / policy dry-run / journal
-- Slash workflows below
+- Session status line + cold drive pack
+- PreToolUse guards (incl. nested shell unwrap, project deny, write-guard `.git/`)
+- Journal + re-read warn + session stats
+- MCP inspect tools; slash procedures below
 
-## On / off (real, not vibes)
+## On / off / strict
 
 | Phrase / command | Effect |
 |------------------|--------|
 | `/wrath-on` · “turn wrath on” | Runtime **enabled** |
-| `/wrath-off` · “turn wrath off” | Runtime **disabled** (guards skip) |
-
-UserPromptSubmit toggles those phrases automatically.
+| `/wrath-off` · “turn wrath off” | Runtime **disabled** |
+| `/wrath-strict` · “wrath-strict-off” | STRICT state on/off |
 
 ## Commands
 
 | Command | Skill |
 |---------|--------|
-| `/wrath-on` / `/wrath-off` | wrath-on / wrath-off |
 | `/wrath-status` | wrath-status |
 | `/wrath-thin` | wrath-thin |
 | `/wrath-check` | wrath-check |
@@ -36,5 +33,7 @@ UserPromptSubmit toggles those phrases automatically.
 | `/wrath-ship` | wrath-ship |
 | `/wrath-doctor` | wrath-doctor |
 | `/wrath-review` | wrath-review |
+| `/wrath-strict` | wrath-strict |
+| `/wrath-why` | wrath-why |
 
 If the user only said `/wrath`, reply with this table in ≤8 lines.

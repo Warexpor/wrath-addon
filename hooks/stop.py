@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -11,15 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import emit, log_hook_error, plugin_data, read_stdin_json  # noqa: E402
 from journal import append_event, counts, session_id_from_env  # noqa: E402
-
-DEFAULT_BUDGET_TOOLS = 80
-
-
-def _budget_threshold() -> int:
-    raw = os.environ.get("WRATH_BUDGET_TOOLS", "").strip()
-    if raw.isdigit():
-        return max(int(raw), 1)
-    return DEFAULT_BUDGET_TOOLS
+from project_config import budget_tools_effective, discover_start, load_project_config  # noqa: E402
 
 
 def main() -> int:
@@ -30,6 +21,7 @@ def main() -> int:
         if not is_wrath_enabled():
             return 0
         data = plugin_data()
+        cfg = load_project_config(discover_start(event))
         sid = session_id_from_env(event)
         c = counts(data, session_id=sid if sid != "unknown" else None)
         append_event(
@@ -42,15 +34,14 @@ def main() -> int:
             },
         )
         tools = int(c.get("tools") or 0)
-        threshold = _budget_threshold()
+        threshold = budget_tools_effective(cfg)
         if tools >= threshold:
             emit(
                 {
                     "systemMessage": (
-                        f"Wrath budget: {tools} tool events logged this session "
+                        f"Wrath budget: {tools} tool events this session "
                         f"(threshold {threshold}). "
-                        "Prefer grep over re-reads, /wrath-thin for small fixes, "
-                        "and MCP wrath_session_stats for a histogram."
+                        "Prefer grep over re-reads; /wrath-thin; MCP wrath_session_stats."
                     )
                 }
             )

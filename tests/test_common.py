@@ -38,3 +38,9 @@ def test_plugin_version():
     ver = plugin_version()
     assert ver
     assert ver[0].isdigit()
+
+
+def test_normalize_path_key():
+    from common import normalize_path_key
+
+    assert normalize_path_key(r"C:\A\B") == normalize_path_key("C:/A/B/")

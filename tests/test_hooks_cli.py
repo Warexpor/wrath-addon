@@ -55,4 +55,7 @@ def test_pre_allow_git_status(tmp_path: Path):
 def test_session_start_has_drive(tmp_path: Path):
     res = _run_hook("session_start.py", {}, tmp_path)
     assert "systemMessage" in res
-    assert "Wrath" in res["systemMessage"]
+    msg = res["systemMessage"]
+    assert "Wrath" in msg
+    assert "v" in msg  # status line version
+    assert "strict=" in msg

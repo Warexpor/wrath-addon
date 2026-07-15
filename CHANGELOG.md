@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0 — 2026-07-15
+
+### Added
+- Project config `.wrath.toml` / `.wrath.json` (`deny`, `budget_tools`, `reread_warn`, `strict`)
+- Nested shell unwrap (one level): powershell/pwsh -Command, bash -c, cmd /c
+- SessionStart status line (version · ON/OFF · strict · budget · config)
+- Soft same-path re-read warn; journal records `path`
+- Write-guard: deny writes under `.git/`
+- Strict state + `/wrath-strict` / phrases; `/wrath-why`
+- MCP `wrath_config`; doctor reports MCP absolute path + fix
+
+### Changed
+- Shorter drive pack; skills MCP-first (status/ship/doctor)
+- stop budget reads project config + env
+
 ## 1.0.1 — 2026-07-15
 
 ### Fixed / polished

@@ -57,6 +57,7 @@ def test_mcp_initialize_and_tools(tmp_path: Path):
     assert "wrath_doctor" in names
     assert "wrath_policy_check" in names
     assert "wrath_session_stats" in names
+    assert "wrath_config" in names
 
 
 def test_mcp_policy_check(tmp_path: Path):

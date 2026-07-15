@@ -2,7 +2,14 @@ import json
 import os
 from pathlib import Path
 
-from toggle import is_wrath_enabled, parse_toggle_intent, set_wrath_enabled
+from toggle import (
+    is_strict,
+    is_wrath_enabled,
+    parse_strict_intent,
+    parse_toggle_intent,
+    set_strict,
+    set_wrath_enabled,
+)
 
 
 def test_parse_toggle_intent():
@@ -16,6 +23,20 @@ def test_parse_toggle_intent():
     assert parse_toggle_intent("turn vanta off") is False  # legacy
     assert parse_toggle_intent("turn wrath off") is False
     assert parse_toggle_intent("fix the bug") is None
+
+
+def test_parse_strict_intent():
+    assert parse_strict_intent("/wrath-strict") is True
+    assert parse_strict_intent("wrath-strict-off") is False
+    assert parse_strict_intent("hello") is None
+
+
+def test_set_strict_roundtrip(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("WRATH_STRICT", raising=False)
+    set_strict(True, data_dir=tmp_path, source="test")
+    assert is_strict(tmp_path) is True
+    set_strict(False, data_dir=tmp_path, source="test")
+    assert is_strict(tmp_path) is False
 
 
 def test_set_enabled_roundtrip(tmp_path: Path, monkeypatch):
@@ -100,8 +121,9 @@ def test_user_prompt_toggle_on_injects_drive(tmp_path: Path, monkeypatch):
     assert proc.returncode == 0
     out = json.loads(proc.stdout)
     msg = out.get("systemMessage", "")
-    assert "Wrath mode" in msg
-    assert "Ladder" in msg
+    assert "Wrath" in msg
+    assert "ON" in msg
+    assert "Ladder" in msg or "Drive:" in msg
     assert is_wrath_enabled(tmp_path) is True
 
 
