@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "wrath": {
+      "command": "python",
+      "args": ["mcp/run.py"]
+    }
+  }
+}
