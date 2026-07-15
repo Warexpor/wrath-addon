@@ -3,16 +3,23 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import emit, plugin_data, read_stdin_json  # noqa: E402
+from common import emit, log_hook_error, plugin_data, read_stdin_json  # noqa: E402
 from journal import append_event, counts, session_id_from_env  # noqa: E402
 
-# Soft threshold — journal tools in this data dir (session-filtered when known)
-BUDGET_TOOLS = 80
+DEFAULT_BUDGET_TOOLS = 80
+
+
+def _budget_threshold() -> int:
+    raw = os.environ.get("WRATH_BUDGET_TOOLS", "").strip()
+    if raw.isdigit():
+        return max(int(raw), 1)
+    return DEFAULT_BUDGET_TOOLS
 
 
 def main() -> int:
@@ -35,18 +42,20 @@ def main() -> int:
             },
         )
         tools = int(c.get("tools") or 0)
-        if tools >= BUDGET_TOOLS:
+        threshold = _budget_threshold()
+        if tools >= threshold:
             emit(
                 {
                     "systemMessage": (
-                        f"Wrath budget: {tools} tool events logged this session. "
+                        f"Wrath budget: {tools} tool events logged this session "
+                        f"(threshold {threshold}). "
                         "Prefer grep over re-reads, /wrath-thin for small fixes, "
                         "and MCP wrath_session_stats for a histogram."
                     )
                 }
             )
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 — fail-open
+        log_hook_error("Stop", exc)
     return 0
 
 

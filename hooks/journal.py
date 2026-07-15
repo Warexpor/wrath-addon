@@ -213,8 +213,4 @@ def session_id_from_env(event: dict[str, Any] | None = None) -> str:
         sid = event.get("sessionId") or event.get("session_id")
         if sid:
             return str(sid)
-    return (
-        os.environ.get("GROK_SESSION_ID")
-        or os.environ.get("CLAUDE_SESSION_ID")
-        or "unknown"
-    )
+    return os.environ.get("GROK_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID") or "unknown"

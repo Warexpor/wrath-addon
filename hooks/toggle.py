@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from common import plugin_data
+from common import plugin_data, plugin_version
 
 STATE_NAME = "wrath_state.json"
 DEFAULT_ENABLED = True
@@ -54,7 +54,7 @@ def set_wrath_enabled(
         "enabled": bool(enabled),
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "source": source,
-        "version": "1.0.0",
+        "version": plugin_version(),
     }
     state_path(data).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return payload

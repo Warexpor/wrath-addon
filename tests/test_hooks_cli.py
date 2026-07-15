@@ -8,11 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 HOOKS = ROOT / "hooks"
 
 
-def _run_hook(script: str, payload: dict, env: dict | None = None) -> dict:
-    e = {**os.environ, "GROK_PLUGIN_DATA": str(ROOT / "tests" / "_data")}
+def _run_hook(script: str, payload: dict, tmp_path: Path, env: dict | None = None) -> dict:
+    e = {**os.environ, "GROK_PLUGIN_DATA": str(tmp_path)}
     if env:
         e.update(env)
-    (ROOT / "tests" / "_data").mkdir(parents=True, exist_ok=True)
     proc = subprocess.run(
         [sys.executable, str(HOOKS / script)],
         input=json.dumps(payload),
@@ -29,32 +28,31 @@ def _run_hook(script: str, payload: dict, env: dict | None = None) -> dict:
     return json.loads(out)
 
 
-def test_pre_deny_rm_rf():
+def test_pre_deny_rm_rf(tmp_path: Path):
     res = _run_hook(
         "pre_tool_use.py",
         {
             "toolName": "run_terminal_command",
             "toolInput": {"command": "rm -rf /"},
         },
+        tmp_path,
     )
     assert res.get("decision") == "deny"
 
 
-def test_pre_allow_git_status():
+def test_pre_allow_git_status(tmp_path: Path):
     res = _run_hook(
         "pre_tool_use.py",
         {
             "toolName": "run_terminal_command",
             "toolInput": {"command": "git status"},
         },
+        tmp_path,
     )
-    assert (
-        res.get("decision", "allow") in ("allow", None)
-        or res.get("decision") == "allow"
-    )
+    assert res.get("decision", "allow") == "allow"
 
 
-def test_session_start_has_drive():
-    res = _run_hook("session_start.py", {})
+def test_session_start_has_drive(tmp_path: Path):
+    res = _run_hook("session_start.py", {}, tmp_path)
     assert "systemMessage" in res
     assert "Wrath" in res["systemMessage"]

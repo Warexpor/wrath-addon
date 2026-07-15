@@ -39,28 +39,48 @@ if (Test-Path $registry) {
     }
 }
 if (-not $installed) {
-    $candidates = Get-ChildItem (Join-Path $env:USERPROFILE ".grok\installed-plugins") -Directory -ErrorAction SilentlyContinue |
-        Where-Object { Test-Path (Join-Path $_.FullName "mcp\run.py") }
-    if ($candidates) { $installed = $candidates[0].FullName }
+    $pluginsRoot = Join-Path $env:USERPROFILE ".grok\installed-plugins"
+    $candidates = Get-ChildItem $pluginsRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object {
+            (Test-Path (Join-Path $_.FullName "mcp\run.py")) -and
+            (Test-Path (Join-Path $_.FullName ".claude-plugin\plugin.json"))
+        }
+    foreach ($c in $candidates) {
+        try {
+            $man = Get-Content (Join-Path $c.FullName ".claude-plugin\plugin.json") -Raw | ConvertFrom-Json
+            if ($man.name -eq "wrath") {
+                $installed = $c.FullName
+                break
+            }
+        } catch { }
+    }
 }
 
 if ($installed) {
     $runPy = Join-Path $installed "mcp\run.py"
     if (Test-Path $runPy) {
-        $mcpObj = @{
-            mcpServers = @{
-                wrath = @{
+        $mcpObj = [ordered]@{
+            mcpServers = [ordered]@{
+                wrath = [ordered]@{
                     command = "python"
                     args    = @($runPy)
                 }
             }
         }
         $mcpPath = Join-Path $installed ".mcp.json"
-        ($mcpObj | ConvertTo-Json -Depth 6) | Set-Content -Path $mcpPath -Encoding utf8
+        $json = $mcpObj | ConvertTo-Json -Depth 6
+        # UTF-8 without BOM (PowerShell 5 may only offer utf8 with BOM)
+        [System.IO.File]::WriteAllText($mcpPath, $json + "`n")
         Write-Host "Patched MCP absolute path -> $runPy"
     }
+    # Drop empty commands/ so Grok does not report a phantom command dir
+    $cmdDir = Join-Path $installed "commands"
+    if ((Test-Path $cmdDir) -and -not (Get-ChildItem $cmdDir -Force -ErrorAction SilentlyContinue | Select-Object -First 1)) {
+        Remove-Item $cmdDir -Force -Recurse -ErrorAction SilentlyContinue
+        Write-Host "Removed empty commands/ from install"
+    }
 } else {
-    Write-Host "WARN: could not locate installed plugin to patch MCP path" -ForegroundColor Yellow
+    Write-Host "WARN: could not locate installed wrath plugin to patch MCP path" -ForegroundColor Yellow
 }
 
 if ($Rules) {
@@ -74,6 +94,6 @@ Write-Host ""
 Write-Host "Done. Next:"
 Write-Host "  - Restart grok or reload plugins (Plugins tab: r)"
 Write-Host "  - Try /wrath  /wrath-status  /wrath-thin  /wrath-check  /wrath-review"
-Write-Host "  - Overrides: WRATH_ALLOW_FORCE / HARD / CLEAN / PIPE_EXEC ; WRATH_STRICT=1"
+Write-Host "  - Overrides: WRATH_ALLOW_FORCE / HARD / CLEAN / PIPE_EXEC ; WRATH_STRICT=1 ; WRATH_BUDGET_TOOLS=N"
 & $Grok plugin details wrath 2>$null
 if ($LASTEXITCODE -ne 0) { & $Grok plugin list }

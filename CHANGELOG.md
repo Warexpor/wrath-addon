@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.1 — 2026-07-15
+
+### Fixed / polished
+- Tests use `tmp_path` only; untracked `tests/_data` (no dirty journal after pytest)
+- Secret-path detector: `.env.*`, `service_account*.json`, `-sa.json`
+- Version single-sourced from `.claude-plugin/plugin.json`
+- Segment-splitter docstring: bare `|` is not split
+- MCP dead `is_err` assignment removed
+- `install.ps1`: prefer `plugin.json` name=wrath; drop empty `commands/`
+- Hook fail-open errors → stderr + `hook_errors.jsonl`
+- `WRATH_BUDGET_TOOLS`; STRICT force-push without branch
+- `pyproject.toml`, GitHub Actions CI, `SECURITY.md`, ruff format, LF for Python
+
 ## 1.0.0 — 2026-07-15
 
 ### Added

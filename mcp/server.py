@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "hooks"))
 
+from common import plugin_version  # noqa: E402
 from journal import (  # noqa: E402
     counts,
     journal_path,
@@ -20,7 +21,7 @@ from journal import (  # noqa: E402
 from policy import evaluate  # noqa: E402
 from toggle import is_wrath_enabled, load_state, set_wrath_enabled  # noqa: E402
 
-VERSION = "1.0.0"
+VERSION = plugin_version()
 
 
 def data_dir() -> Path:
@@ -36,7 +37,7 @@ def data_dir() -> Path:
 TOOLS = [
     {
         "name": "wrath_journal_tail",
-        "description": "Last N Wrath journal events. Optional kind filter (tool|deny|stop|toggle|tool_fail) and session_id.",
+        "description": "Last N Wrath journal events. Optional kind and session_id filters.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -58,7 +59,7 @@ TOOLS = [
     },
     {
         "name": "wrath_set_enabled",
-        "description": "Enable or disable Wrath runtime (guards/drive/journal). args: enabled bool.",
+        "description": "Enable or disable Wrath runtime. args: enabled bool.",
         "inputSchema": {
             "type": "object",
             "properties": {"enabled": {"type": "boolean"}},
@@ -223,13 +224,12 @@ def main() -> int:
             args = params.get("arguments") or {}
             try:
                 text = handle_tool(str(name), args if isinstance(args, dict) else {})
-                is_err = '"error"' in text[:40] and text.strip().startswith("{")
-                # only mark isError for explicit error payloads
+                is_err = False
                 try:
                     parsed = json.loads(text)
                     is_err = isinstance(parsed, dict) and "error" in parsed
                 except json.JSONDecodeError:
-                    is_err = False
+                    pass
                 respond(
                     msg_id,
                     {
@@ -241,9 +241,7 @@ def main() -> int:
                 respond(
                     msg_id,
                     {
-                        "content": [
-                            {"type": "text", "text": json.dumps({"error": str(exc)})}
-                        ],
+                        "content": [{"type": "text", "text": json.dumps({"error": str(exc)})}],
                         "isError": True,
                     },
                 )
@@ -254,9 +252,7 @@ def main() -> int:
         elif method == "prompts/list":
             respond(msg_id, {"prompts": []})
         elif msg_id is not None:
-            respond(
-                msg_id, error={"code": -32601, "message": f"Method not found: {method}"}
-            )
+            respond(msg_id, error={"code": -32601, "message": f"Method not found: {method}"})
     return 0
 
 

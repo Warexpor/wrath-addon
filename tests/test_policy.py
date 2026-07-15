@@ -99,3 +99,10 @@ def test_non_strict_drop_warns(monkeypatch):
     d = evaluate("run_terminal_command", "DROP TABLE users;")
     assert d.allow
     assert d.warning
+
+
+def test_strict_force_push_no_branch(monkeypatch):
+    monkeypatch.setenv("WRATH_STRICT", "1")
+    monkeypatch.delenv("WRATH_ALLOW_FORCE", raising=False)
+    d = evaluate("run_terminal_command", "git push --force")
+    assert not d.allow

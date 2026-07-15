@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
 *.egg-info/
 .venv/
 venv/
@@ -9,3 +10,4 @@ venv/
 *.log
 .DS_Store
 Thumbs.db
+tests/_data/

@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import (  # noqa: E402
+    log_hook_error,
     plugin_data,
     read_stdin_json,
     shell_command,
@@ -24,12 +25,7 @@ def main() -> int:
         event = read_stdin_json()
         if not is_wrath_enabled():
             return 0
-        err = (
-            event.get("error")
-            or event.get("message")
-            or event.get("errorMessage")
-            or ""
-        )
+        err = event.get("error") or event.get("message") or event.get("errorMessage") or ""
         append_event(
             plugin_data(),
             {
@@ -40,8 +36,8 @@ def main() -> int:
                 "error": str(err)[:400],
             },
         )
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 — fail-open
+        log_hook_error("PostToolUseFailure", exc)
     return 0
 
 

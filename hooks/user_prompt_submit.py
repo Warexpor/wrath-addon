@@ -9,7 +9,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import emit, plugin_data, prompt_text, read_stdin_json  # noqa: E402
+from common import (  # noqa: E402
+    emit,
+    log_hook_error,
+    plugin_data,
+    prompt_text,
+    read_stdin_json,
+)
 from drive_pack import drive_system_message  # noqa: E402
 from journal import append_event, session_id_from_env  # noqa: E402
 from toggle import is_wrath_enabled, parse_toggle_intent, set_wrath_enabled  # noqa: E402
@@ -64,8 +70,8 @@ def main() -> int:
                 }
             )
             return 0
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 — fail-open
+        log_hook_error("UserPromptSubmit", exc)
     return 0
 
 

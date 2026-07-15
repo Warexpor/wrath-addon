@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import (  # noqa: E402
+    log_hook_error,
     plugin_data,
     read_stdin_json,
     shell_command,
@@ -35,8 +36,8 @@ def main() -> int:
                 "command": (cmd or "")[:300] or None,
             },
         )
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 — fail-open
+        log_hook_error("PostToolUse", exc)
     return 0
 
 

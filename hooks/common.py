@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +27,19 @@ def plugin_data() -> Path:
     return path
 
 
+def plugin_version() -> str:
+    """Single source: .claude-plugin/plugin.json version field."""
+    manifest = plugin_root() / ".claude-plugin" / "plugin.json"
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+        ver = data.get("version")
+        if ver:
+            return str(ver)
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    return "0.0.0"
+
+
 def read_stdin_json() -> dict[str, Any]:
     try:
         raw = sys.stdin.read()
@@ -43,10 +56,30 @@ def emit(obj: dict[str, Any]) -> None:
     sys.stdout.flush()
 
 
+def log_hook_error(hook: str, exc: BaseException, data_dir: Path | None = None) -> None:
+    """Best-effort breadcrumb for fail-open hooks (stderr + optional journal)."""
+    msg = f"Wrath {hook}: {type(exc).__name__}: {exc}"
+    try:
+        print(msg, file=sys.stderr)
+    except Exception:
+        pass
+    try:
+        d = data_dir or plugin_data()
+        d.mkdir(parents=True, exist_ok=True)
+        path = d / "hook_errors.jsonl"
+        row = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "hook": hook,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 def tool_name(event: dict[str, Any]) -> str:
-    return str(
-        event.get("toolName") or event.get("tool_name") or event.get("tool") or ""
-    )
+    return str(event.get("toolName") or event.get("tool_name") or event.get("tool") or "")
 
 
 def tool_input(event: dict[str, Any]) -> dict[str, Any]:
@@ -104,7 +137,8 @@ def prompt_text(event: dict[str, Any]) -> str:
 def split_shell_segments(cmd: str) -> list[str]:
     """Split a shell line into rough segments for multi-command policy checks.
 
-    Handles `;`, `&&`, `||`, and PowerShell `|` pipeline stages lightly.
+    Splits on `;`, `&&`, and `||` only. Bare `|` is **not** split so that
+    patterns like ``curl … | bash`` stay one segment for pipe-exec gates.
     Not a full shell parser — good enough for footgun gates.
     """
     if not cmd or not cmd.strip():
@@ -128,9 +162,11 @@ def split_shell_segments(cmd: str) -> list[str]:
             buf.append(ch)
             i += 1
             continue
-        # delimiters
-        if ch == ";" or (ch == "&" and i + 1 < len(s) and s[i + 1] == "&") or (
-            ch == "|" and i + 1 < len(s) and s[i + 1] == "|"
+        # delimiters: ;  &&  ||
+        if (
+            ch == ";"
+            or (ch == "&" and i + 1 < len(s) and s[i + 1] == "&")
+            or (ch == "|" and i + 1 < len(s) and s[i + 1] == "|")
         ):
             seg = "".join(buf).strip()
             if seg:
@@ -146,18 +182,43 @@ def split_shell_segments(cmd: str) -> list[str]:
     return parts or [cmd.strip()]
 
 
-_SECRET_NAME = re.compile(
-    r"(^|[/\\])(\.env(\.|$)|id_rsa|id_ed25519|credentials\.json|"
-    r"service[_-]?account|aws_credentials|\.npmrc|\.pypirc)$",
-    re.I,
-)
-
-
 def looks_like_secret_path(path: str) -> bool:
+    """Heuristic sensitive paths (.env*, keys, cloud credentials)."""
     p = (path or "").replace("\\", "/").rstrip("/")
-    base = p.split("/")[-1] if p else ""
+    if not p:
+        return False
+    base = p.split("/")[-1]
     if not base:
         return False
-    if base in {".env", "id_rsa", "id_ed25519", "credentials.json", ".npmrc", ".pypirc"}:
+    low = base.lower()
+
+    # .env, .env.local, .env.production, …
+    if low == ".env" or low.startswith(".env."):
         return True
-    return bool(_SECRET_NAME.search(path or ""))
+    if low in {
+        "id_rsa",
+        "id_ed25519",
+        "id_ecdsa",
+        "id_dsa",
+        "credentials.json",
+        "aws_credentials",
+        ".npmrc",
+        ".pypirc",
+        ".netrc",
+    }:
+        return True
+    # Google / GCP style service account JSON
+    norm = low.replace("-", "_")
+    if "service_account" in norm and low.endswith(".json"):
+        return True
+    if low.endswith("_sa.json") or low.endswith("-sa.json"):
+        return True
+    # .ssh private key basenames
+    if "/.ssh/" in f"/{p.lower()}" and not low.endswith(".pub"):
+        if low.startswith("id_"):
+            return True
+        if "private" in low or low.endswith(".pem"):
+            return True
+    if low.endswith(".pem") and any(x in low for x in ("key", "private", "cert", "id_")):
+        return True
+    return False

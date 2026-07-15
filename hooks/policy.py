@@ -72,7 +72,7 @@ def evaluate(tool: str, command: str = "", tool_input: dict | None = None) -> De
         ):
             return Decision(
                 allow=False,
-                reason="Wrath: refuse writing secrets-looking content toward public paste/gist URLs",
+                reason="Wrath: refuse writing secrets-looking content toward public pastes",
             )
         return Decision(
             allow=True,
@@ -208,20 +208,28 @@ def _eval_shell_segment(cmd: str) -> Decision:
             )
 
     # git push --force to main/master
-    if re.search(r"\bgit\s+push\b", low) and re.search(
-        r"--force|--force-with-lease|-f\b", low
-    ):
+    if re.search(r"\bgit\s+push\b", low) and re.search(r"--force|--force-with-lease|-f\b", low):
         if re.search(r"\b(main|master)\b", low) and not _env_truthy(FORCE_ENV):
             return Decision(
                 allow=False,
                 reason=f"Wrath: blocked force-push to main/master (set {FORCE_ENV}=1 to override)",
+            )
+        # STRICT: deny any force-push when branch is not explicit in argv
+        if _strict() and not re.search(r"\b(main|master)\b", low) and not _env_truthy(FORCE_ENV):
+            return Decision(
+                allow=False,
+                reason=(
+                    f"Wrath STRICT: blocked force-push without explicit branch in command "
+                    f"(set {FORCE_ENV}=1 or unset {STRICT_ENV})"
+                ),
             )
         if not _env_truthy(FORCE_ENV):
             return Decision(
                 allow=True,
                 warning=(
                     f"Wrath: force-push — confirm remote/branch. "
-                    f"Override gate uses {FORCE_ENV}=1 for main/master."
+                    f"Override gate uses {FORCE_ENV}=1 for main/master. "
+                    f"STRICT denies force-push when branch omitted."
                 ),
             )
 
@@ -241,9 +249,7 @@ def _eval_shell_segment(cmd: str) -> Decision:
             )
 
     # git branch -D main/master
-    if re.search(r"\bgit\s+branch\s+-[dD]\b", low) and re.search(
-        r"\b(main|master)\b", low
-    ):
+    if re.search(r"\bgit\s+branch\s+-[dD]\b", low) and re.search(r"\b(main|master)\b", low):
         return Decision(
             allow=False,
             reason="Wrath: blocked deleting main/master branch",
@@ -278,7 +284,7 @@ def _eval_shell_segment(cmd: str) -> Decision:
     if _strict() and re.search(r"\b(kubectl\s+delete|terraform\s+destroy)\b", low):
         return Decision(
             allow=False,
-            reason=f"Wrath STRICT: blocked infra destroy/delete (unset {STRICT_ENV} or use explicit override later)",
+            reason=(f"Wrath STRICT: blocked infra destroy/delete (unset {STRICT_ENV})"),
         )
 
     return Decision(allow=True)

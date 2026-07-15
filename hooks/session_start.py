@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import emit, plugin_data, read_stdin_json  # noqa: E402
+from common import emit, log_hook_error, plugin_data, read_stdin_json  # noqa: E402
 from drive_pack import drive_system_message  # noqa: E402
 from journal import append_event, session_id_from_env  # noqa: E402
 
@@ -41,6 +41,7 @@ def main() -> int:
             return 0
         emit({"systemMessage": drive_system_message()})
     except Exception as exc:  # noqa: BLE001 — fail-open
+        log_hook_error("SessionStart", exc)
         emit({"systemMessage": f"Wrath SessionStart note: {exc}"})
     return 0
 

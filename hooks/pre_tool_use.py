@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import (  # noqa: E402
     emit,
+    log_hook_error,
     plugin_data,
     read_stdin_json,
     shell_command,
@@ -44,10 +45,11 @@ def main() -> int:
                         "reason": decision.reason,
                     },
                 )
-            except Exception:
-                pass
+            except Exception as exc:  # noqa: BLE001
+                log_hook_error("PreToolUse.journal", exc)
         emit(decision.as_hook_dict())
     except Exception as exc:  # noqa: BLE001 — fail-open
+        log_hook_error("PreToolUse", exc)
         emit(
             {
                 "decision": "allow",

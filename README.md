@@ -2,7 +2,7 @@
 
 **GPLv3.** Makes stock [Grok Build](https://x.ai) sharper: cold drive, real on/off, hardened footgun guards, JSONL journal + session stats, `/wrath-*` workflows, local MCP.
 
-Not a second agent runtime. Stays inside `grok`.
+Not a second agent runtime. Stays inside `grok`. Heuristic guards — not a full sandbox (see [SECURITY.md](SECURITY.md)).
 
 ## Install
 
@@ -56,18 +56,20 @@ Full unload: `grok plugin disable wrath`.
 
 | Env | Effect |
 |-----|--------|
-| `WRATH_ALLOW_FORCE=1` | Allow force-push to main/master |
+| `WRATH_ALLOW_FORCE=1` | Allow force-push to main/master (and STRICT force-push) |
 | `WRATH_ALLOW_HARD=1` | Allow `git reset --hard` |
 | `WRATH_ALLOW_CLEAN=1` | Allow `git clean -f[dx]` |
 | `WRATH_ALLOW_PIPE_EXEC=1` | Allow `curl\|bash` / `iwr\|iex` |
-| `WRATH_STRICT=1` | Also block SQL DROP + common infra destroy |
+| `WRATH_STRICT=1` | SQL DROP, infra destroy, force-push when branch omitted |
+| `WRATH_BUDGET_TOOLS=N` | Soft stop-hook budget nudge after N tool events (default 80) |
 | `WRATH_OFF=1` | Force runtime off (env) |
 | `WRATH_ON=1` | Force runtime on (env) |
 
 ## Verify
 
 ```powershell
-python -m pytest tests -q
+python -m pytest
+ruff check hooks mcp tests
 grok plugin details wrath
 ```
 
@@ -75,7 +77,7 @@ grok plugin details wrath
 
 ```
 wrath-addon/
-  .claude-plugin/plugin.json
+  .claude-plugin/plugin.json   # version single source
   hooks/          # policy + journal + lifecycle
   skills/         # /wrath-*
   agents/
@@ -88,7 +90,3 @@ wrath-addon/
 ## License
 
 [GNU General Public License v3.0 or later](LICENSE).
-
-## Related
-
-Optional standalone agent CLI (separate product): not required for this plugin.
