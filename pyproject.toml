@@ -1,6 +1,6 @@
 [project]
 name = "wrath-addon"
-version = "2.0.0"
+version = "2.0.1"
 description = "Wrath V2 — Grok Build control-plane addon (hooks, policy, journal, MCP)"
 readme = "README.md"
 requires-python = ">=3.10"

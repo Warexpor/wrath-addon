@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.1 - 2026-07-16
+
+### Removed
+- Local bytecode/tool caches from working tree; tighten `.gitignore`
+- Dead `Decision.with_warning` / unused `warnings` field; unused journal `KINDS` constant
+- Machine-absolute path in repo `.mcp.json` (portable relative launcher; install still patches absolute)
+
+### Fixed
+- Hook tests no longer rewrite source-tree `.mcp.json` via SessionStart MCP heal (isolated `GROK_PLUGIN_ROOT`)
+
+### Changed
+- CI ruff scope includes `src/`
+
 ## 2.0.0 - 2026-07-16
 
 ### Added

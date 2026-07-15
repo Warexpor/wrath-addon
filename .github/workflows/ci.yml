@@ -22,8 +22,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest ruff
       - name: Ruff check
-        run: ruff check hooks mcp tests
+        run: ruff check src hooks mcp tests
       - name: Ruff format
-        run: ruff format --check hooks mcp tests
+        run: ruff format --check src hooks mcp tests
       - name: Pytest
         run: python -m pytest

@@ -1,3 +1,4 @@
+# bytecode / caches
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,20 +8,32 @@ __pycache__/
 .coverage
 htmlcov/
 *.egg-info/
+.eggs/
+dist/
+build/
+
+# local envs
 .venv/
 venv/
 .env
 .env.*
 !.env.example
+
+# runtime data
 .wrath-addon/
 *.log
+
+# OS / editor
 .DS_Store
 Thumbs.db
-tests/_data/
 *.swp
 *~
 .idea/
 .vscode/
+
+# junk
+tests/_data/
 *.tmp
 *.bak
 *.orig
+*.rej
