@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI: python set_enabled.py on|off|status|strict-*|orchestrate-*|il-*"""
+"""CLI: python set_enabled.py on|off|status|strict-*|orchestrate-*|il-*|privacy-*|profile <name>"""
 
 from __future__ import annotations
 
@@ -9,15 +9,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import _bootstrap  # noqa: E402, F401
 from project_config import discover_start, load_project_config  # noqa: E402
 from toggle import (  # noqa: E402
+    get_profile,
     is_il,
     is_orchestrate,
+    is_privacy,
     is_strict,
     is_wrath_enabled,
     load_state,
     set_il,
     set_orchestrate,
+    set_privacy,
+    set_profile,
     set_strict,
     set_wrath_enabled,
 )
@@ -27,7 +32,8 @@ def main(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help"):
         print(
             "usage: set_enabled.py on|off|status|strict-on|strict-off|"
-            "orchestrate-on|orchestrate-off|il-on|il-off",
+            "orchestrate-on|orchestrate-off|il-on|il-off|"
+            "privacy-on|privacy-off|profile <name>",
             file=sys.stderr,
         )
         return 2
@@ -39,9 +45,11 @@ def main(argv: list[str]) -> int:
             json.dumps(
                 {
                     "enabled": is_wrath_enabled(),
+                    "profile": get_profile(project=cfg),
                     "strict": is_strict(project=cfg),
                     "orchestrate": is_orchestrate(),
                     "il": is_il(),
+                    "privacy": is_privacy(),
                     "state": state,
                     "project_config": str(cfg.path) if cfg.path else None,
                 },
@@ -72,6 +80,18 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd in ("il-off", "il_off"):
         print(json.dumps(set_il(False, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd in ("privacy-on", "privacy_on", "privacy"):
+        print(json.dumps(set_privacy(True, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd in ("privacy-off", "privacy_off"):
+        print(json.dumps(set_privacy(False, source="set_enabled.py"), indent=2))
+        return 0
+    if cmd == "profile":
+        if len(argv) < 2:
+            print("usage: set_enabled.py profile <name>", file=sys.stderr)
+            return 2
+        print(json.dumps(set_profile(argv[1], source="set_enabled.py"), indent=2))
         return 0
     print(f"unknown: {cmd}", file=sys.stderr)
     return 2

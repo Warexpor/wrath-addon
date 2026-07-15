@@ -3,16 +3,22 @@ import os
 from pathlib import Path
 
 from toggle import (
+    get_profile,
     is_il,
     is_orchestrate,
+    is_privacy,
     is_strict,
     is_wrath_enabled,
     parse_il_intent,
     parse_orchestrate_intent,
+    parse_privacy_intent,
+    parse_profile_intent,
     parse_strict_intent,
     parse_toggle_intent,
     set_il,
     set_orchestrate,
+    set_privacy,
+    set_profile,
     set_strict,
     set_wrath_enabled,
 )
@@ -65,12 +71,50 @@ def test_parse_il_intent():
     assert parse_toggle_intent("disable il") is None
 
 
+def test_parse_privacy_intent():
+    assert parse_privacy_intent("/wrath-privacy") is True
+    assert parse_privacy_intent("wrath-privacy-off") is False
+    assert parse_privacy_intent("privacy on") is True
+    assert parse_privacy_intent("privacy off") is False
+    assert parse_privacy_intent("hello") is None
+    assert parse_toggle_intent("/wrath-privacy") is None
+    assert parse_toggle_intent("privacy on") is None
+
+
+def test_parse_profile_intent():
+    assert parse_profile_intent("/wrath-profile fleet") == "fleet"
+    assert parse_profile_intent("wrath profile privacy") == "privacy"
+    assert parse_profile_intent("hello") is None
+    assert parse_toggle_intent("/wrath-profile fleet") is None
+
+
 def test_set_strict_roundtrip(tmp_path: Path, monkeypatch):
     monkeypatch.delenv("WRATH_STRICT", raising=False)
     set_strict(True, data_dir=tmp_path, source="test")
     assert is_strict(tmp_path) is True
     set_strict(False, data_dir=tmp_path, source="test")
     assert is_strict(tmp_path) is False
+
+
+def test_set_privacy_roundtrip(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("WRATH_PRIVACY", raising=False)
+    set_privacy(True, data_dir=tmp_path, source="test")
+    assert is_privacy(tmp_path) is True
+    set_privacy(False, data_dir=tmp_path, source="test")
+    assert is_privacy(tmp_path) is False
+
+
+def test_set_profile_roundtrip(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("WRATH_STRICT", raising=False)
+    monkeypatch.delenv("WRATH_ORCHESTRATE", raising=False)
+    monkeypatch.delenv("WRATH_IL", raising=False)
+    monkeypatch.delenv("WRATH_PRIVACY", raising=False)
+    set_profile("fleet", data_dir=tmp_path, source="test")
+    assert get_profile(tmp_path) == "fleet"
+    assert is_orchestrate(tmp_path) is True
+    assert is_il(tmp_path) is True
+    set_profile("default", data_dir=tmp_path, source="test")
+    assert get_profile(tmp_path) == "default"
 
 
 def test_set_orchestrate_roundtrip(tmp_path: Path, monkeypatch):

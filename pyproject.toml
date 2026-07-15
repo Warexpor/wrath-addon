@@ -1,23 +1,24 @@
 [project]
 name = "wrath-addon"
-version = "1.3.2"
-description = "Wrath — Grok Build addon (hooks, journal, MCP)"
+version = "2.0.0"
+description = "Wrath V2 — Grok Build control-plane addon (hooks, policy, journal, MCP)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }
 authors = [{ name = "Warexpor" }]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "ruff>=0.4"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["hooks"]
+pythonpath = ["src", "hooks"]
 addopts = "-q"
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+src = ["src", "hooks", "mcp", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]

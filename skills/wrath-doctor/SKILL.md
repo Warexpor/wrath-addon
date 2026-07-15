@@ -3,10 +3,13 @@ name: wrath-doctor
 description: Diagnose Wrath plugin install (hooks, python, MCP, data dir). Use for /wrath-doctor or when hooks/MCP seem missing.
 ---
 
-# wrath-doctor
+# Wrath doctor
 
-1. Call MCP `wrath_doctor` — treat JSON as checklist.
-2. Call MCP `wrath_config` for effective strict/budget/project file.
-3. If `mcp_args_absolute` is false or `mcp_run_exists` is false: run the `fix` field (usually `.\install.ps1`) then reload plugins.
-4. Smoke: MCP `wrath_policy_check` with `rm -rf /` (deny) and `git status` (allow).
-5. Pass/fail bullets only. No essay.
+Call MCP **`wrath_doctor`**. Check:
+
+- `src_package` true, `hooks_json` true, hook_events includes PreToolUse + Subagent*
+- `policy_smoke.deny_rm_root` and `deny_nested_shell` true
+- MCP absolute path (`fix` empty)
+- version 2.x
+
+If MCP broken: run `.\install.ps1` from the wrath-addon repo.

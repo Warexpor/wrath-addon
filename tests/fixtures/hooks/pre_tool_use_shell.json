@@ -1,0 +1,10 @@
+{
+  "hookEventName": "pre_tool_use",
+  "sessionId": "test-session-1",
+  "cwd": "C:/Users/amicu/wrath-addon",
+  "workspaceRoot": "C:/Users/amicu/wrath-addon",
+  "toolName": "run_terminal_command",
+  "toolInput": { "command": "git status" },
+  "toolUseId": "tu-1",
+  "toolInputTruncated": false
+}

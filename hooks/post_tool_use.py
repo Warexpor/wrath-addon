@@ -1,50 +1,6 @@
 #!/usr/bin/env python3
-"""PostToolUse: journal tool activity with path (never blocks)."""
-
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from common import (  # noqa: E402
-    log_hook_error,
-    plugin_data,
-    read_stdin_json,
-    shell_command,
-    tool_input,
-    tool_name,
-)
-from journal import append_event, session_id_from_env  # noqa: E402
-from policy import tool_path  # noqa: E402
-
-
-def main() -> int:
-    try:
-        from toggle import is_wrath_enabled
-
-        event = read_stdin_json()
-        if not is_wrath_enabled():
-            return 0
-        name = tool_name(event)
-        cmd = shell_command(event)
-        ti = tool_input(event)
-        path = tool_path(ti) or None
-        append_event(
-            plugin_data(),
-            {
-                "kind": "tool",
-                "session_id": session_id_from_env(event),
-                "tool": name,
-                "command": (cmd or "")[:300] or None,
-                "path": path,
-            },
-        )
-    except Exception as exc:  # noqa: BLE001 — fail-open
-        log_hook_error("PostToolUse", exc)
-    return 0
-
+import _bootstrap  # noqa: F401
+from wrath.hooks_impl.post_tool_use import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

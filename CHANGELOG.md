@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.0.0 - 2026-07-16
+
+### Added
+- **V2 architecture**: `src/wrath/` package (policy, journal, modes, hooks_impl, mcp); thin hook shims
+- **Profiles**: `default` · `thin` · `strict` · `privacy` · `fleet` · `max` (`/wrath-profile`, MCP `wrath_set_profile`)
+- **Privacy mode**: bulk git bundle/archive, home tar/zip, cloud sync heuristics; `/wrath-privacy`, `WRATH_PRIVACY`
+- **Nested shell depth 3** (configurable): multi-layer powershell/bash/cmd unwrap
+- **Spawn orch gate**: warn/deny `spawn_subagent` without `model=` when orchestrate on
+- **Full lifecycle hooks**: PermissionDenied, SubagentStart/Stop, Pre/PostCompact, SessionEnd, StopFailure
+- **Journal schema v2**: `rule_id`, harness denies, subagent soft-return flags, session counters sidecar
+- **MCP**: `wrath_status`, `wrath_last_deny`, `wrath_set_privacy`, `wrath_set_profile`, `wrath_session_report`; multi-tool `wrath_policy_check`
+- Config schema v2 (`.wrath.toml` `version = 2`, `[policy]`, profiles); v1 still loads
+- `docs/HOOK_CONTRACT.md` — Grok Build hook contract notes
+- Skills: `/wrath-privacy`, `/wrath-profile`
+
+### Changed
+- Policy engine modularized into rule packs under `src/wrath/policy/rules/`
+- Drive pack / status line include profile + privacy
+- Doctor reports hook events + nested-shell smoke
+- Plugin/package version **2.0.0**
+
+### Fixed
+- Re-read counting uses session counter sidecar (avoids full journal scan)
+- Policy: preserve `rule_id` on warn decisions; canonicalize tool aliases (`Task`/`MultiEdit`/…)
+- install.ps1 post-install hints aligned with V2 commands
+- Tests cover privacy/profile toggles, nested PreToolUse, MCP V2 tool list
+
 ## 1.3.2 - 2026-07-15
 
 ### Fixed
@@ -78,30 +105,3 @@
 - `install.ps1`: prefer `plugin.json` name=wrath; drop empty `commands/`
 - Hook fail-open errors → stderr + `hook_errors.jsonl`
 - `WRATH_BUDGET_TOOLS`; STRICT force-push without branch
-- `pyproject.toml`, GitHub Actions CI, `SECURITY.md`, ruff format, LF for Python
-
-## 1.0.0 — 2026-07-15
-
-### Added
-- GPLv3 license; public repo packaging
-- MCP tools: `wrath_policy_check`, `wrath_session_stats`
-- Journal: efficient reverse tail, kind/session filters, rotation, session stats
-- Policy: multi-command segments, `git clean -fdx`, remote pipe-to-shell, branch delete main, SQL DROP warn/strict, infra destroy (strict)
-- Hook: `PostToolUseFailure` journaling
-- Skill: `/wrath-review`
-- Stop-hook soft budget nudge after high tool volume
-- `install.ps1` absolute MCP path patch (fixes cwd ≠ plugin root)
-
-### Fixed
-- MCP server failed when Grok started it with home cwd (`mcp/run.py` not found)
-- Skills no longer hardcode a single user machine path
-- Policy DROP decision no longer mixed allow+deny fields
-
-### Changed
-- Version 0.4.1 → 1.0.0
-- Hardened agents/rules drive pack
-- Doctor reports policy smoke + MCP path presence
-
-## 0.4.1
-
-- On/off flag, journal, footgun guards, basic MCP, install refresh

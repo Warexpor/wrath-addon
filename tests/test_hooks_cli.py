@@ -60,6 +60,9 @@ def test_session_start_has_drive(tmp_path: Path):
     assert "v" in msg  # status line version
     assert "strict=" in msg
     assert "orch=" in msg
+    assert "il=" in msg
+    assert "privacy=" in msg
+    assert "profile=" in msg
 
 
 def test_session_start_orchestrate_injects_routing(tmp_path: Path):
@@ -80,3 +83,25 @@ def test_session_start_il_injects_wire(tmp_path: Path):
     msg = res["systemMessage"]
     assert "il=on" in msg
     assert "IL" in msg or "agent wire" in msg.lower()
+
+
+def test_session_start_privacy_injects_body(tmp_path: Path):
+    from toggle import set_privacy
+
+    set_privacy(True, data_dir=tmp_path, source="test")
+    res = _run_hook("session_start.py", {}, tmp_path)
+    msg = res["systemMessage"]
+    assert "privacy=on" in msg
+    assert "PRIVACY" in msg
+
+
+def test_pre_deny_nested_powershell_bash(tmp_path: Path):
+    res = _run_hook(
+        "pre_tool_use.py",
+        {
+            "toolName": "run_terminal_command",
+            "toolInput": {"command": "powershell -Command \"bash -c 'rm -rf /'\""},
+        },
+        tmp_path,
+    )
+    assert res.get("decision") == "deny"

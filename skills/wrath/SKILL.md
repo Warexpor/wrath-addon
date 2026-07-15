@@ -1,18 +1,18 @@
 ---
 name: wrath
-description: Wrath addon hub for Grok Build. Use when the user says /wrath, asks what Wrath does, or wants the better Grok workflow.
+description: Wrath V2 hub for Grok Build. Use when the user says /wrath, asks what Wrath does, or wants the better Grok workflow.
 ---
 
-# Wrath hub
+# Wrath V2 hub
 
 You are running **inside Grok Build** with the Wrath plugin loaded.
 
 ## What Wrath adds
 
-- Session status line + cold drive pack
-- PreToolUse guards (incl. nested shell unwrap, project deny, write-guard `.git/`)
-- Journal + re-read warn + session stats
-- MCP inspect tools; slash procedures below
+- Control plane: profiles, modular policy, full lifecycle journal
+- PreToolUse guards (nested shell depth 3, privacy upload, spawn model pin, footguns)
+- Drive pack + modes (strict / orch / il / privacy)
+- MCP inspect tools
 
 ## On / off / modes
 
@@ -20,9 +20,11 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 |------------------|--------|
 | `/wrath-on` · “turn wrath on” | Runtime **enabled** |
 | `/wrath-off` · “turn wrath off” | Runtime **disabled** |
-| `/wrath-strict` · “wrath-strict-off” | STRICT state on/off |
-| `/wrath-orchestrate` · “multi-model on” | Fleet multi-model routing on/off |
-| `/wrath-il` · “il on” | Agent-wire IL dialect on/off |
+| `/wrath-profile <name>` | Profile: default·thin·strict·privacy·fleet·max |
+| `/wrath-privacy` | Privacy bulk-upload deny |
+| `/wrath-strict` | STRICT state on/off |
+| `/wrath-orchestrate` | Fleet multi-model on/off |
+| `/wrath-il` | Agent-wire IL dialect on/off |
 
 ## Commands
 
@@ -35,9 +37,8 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 | `/wrath-ship` | wrath-ship |
 | `/wrath-doctor` | wrath-doctor |
 | `/wrath-review` | wrath-review |
-| `/wrath-strict` | wrath-strict |
-| `/wrath-orchestrate` | wrath-orchestrate |
-| `/wrath-il` | wrath-il |
 | `/wrath-why` | wrath-why |
+| `/wrath-profile` | wrath-profile |
+| `/wrath-privacy` | wrath-privacy |
 
-If the user only said `/wrath`, reply with this table in ≤8 lines.
+If the user only said `/wrath`, reply with this table in ≤10 lines. Prefer MCP `wrath_status` / `wrath_doctor`.

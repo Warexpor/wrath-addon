@@ -1,6 +1,6 @@
-# Wrath — Grok Build addon
+# Wrath V2 — Grok Build control plane
 
-**GPLv3.** Cold drive, real on/off, footgun guards, journal, project config, `/wrath-*` workflows, local MCP.
+**GPLv3.** Cold drive, profiles, modular policy engine, full lifecycle journal, privacy/fleet/IL modes, `/wrath-*` + MCP.
 
 Not a second agent runtime. Heuristic guards — not a full sandbox ([SECURITY.md](SECURITY.md)).
 
@@ -15,30 +15,50 @@ cd wrath-addon
 
 Or: `grok plugin install . --trust` then reload plugins.
 
-`install.ps1` reinstalls and **patches MCP to an absolute `run.py` path**.
+`install.ps1` reinstalls and **patches MCP to an absolute launcher path**.
 
-## What you get
+Requires **Python 3.10+** and the `src/wrath` package (ships with the plugin).
+
+## What you get (V2)
 
 | Piece | Effect |
 |-------|--------|
-| SessionStart | Status line (version · ON/OFF · strict · orch · il · budget · config) + drive pack |
-| PreToolUse | Footguns + nested `powershell`/`bash -c` unwrap + `.git/` write block |
-| Project config | `.wrath.toml` or `.wrath.json` in repo |
-| Re-read warn | Soft warn after N same-path reads (default 3) |
-| Skills | `/wrath-*` including `/wrath-strict` `/wrath-orchestrate` `/wrath-il` `/wrath-why` |
-| MCP | doctor, config, policy_check, journal_tail, session_stats, set_enabled, set_orchestrate, set_il |
+| SessionStart | Status line + drive pack + MCP self-heal |
+| PreToolUse | Modular policy (nested shell depth 3, privacy, spawn model pin, footguns) |
+| Full lifecycle | PermissionDenied, SubagentStart/Stop, Compact, SessionEnd, StopFailure |
+| Profiles | `default` · `thin` · `strict` · `privacy` · `fleet` · `max` |
+| Journal schema 2 | rule_id denials, subagents, harness denials |
+| MCP | status, last_deny, policy_check (any tool), set_profile/privacy, session_report |
 
-### Project config (optional)
+### Profiles
+
+| Profile | Modes |
+|---------|--------|
+| default | Baseline guards, privacy upload **warn** |
+| thin | Lighter privacy |
+| strict | Strict denials + spawn model warn |
+| privacy | Strict + privacy upload **deny** |
+| fleet | orchestrate + il + spawn model warn |
+| max | All of the above hard |
 
 ```toml
-# .wrath.toml  (or .wrath.json)
-strict = false
+# .wrath.toml
+version = 2
+profile = "default"
+
+[policy]
+nested_shell_depth = 3
 budget_tools = 80
-reread_warn = 3          # 0 = off
+reread_warn = 3
+privacy_upload = "warn"   # off | warn | deny
+require_spawn_model = "off"
 deny = ["\\bnuke-prod\\b"]
+
+[modes]
+strict = false
 ```
 
-Walks up from cwd / `GROK_PROJECT_DIR`.
+Walks up from cwd / `GROK_PROJECT_DIR`. v1 configs still load.
 
 ### Overrides
 
@@ -48,26 +68,41 @@ Walks up from cwd / `GROK_PROJECT_DIR`.
 | `WRATH_ALLOW_HARD=1` | Allow `git reset --hard` |
 | `WRATH_ALLOW_CLEAN=1` | Allow `git clean -f[dx]` |
 | `WRATH_ALLOW_PIPE_EXEC=1` | Allow curl\|bash / iwr\|iex |
-| `WRATH_STRICT=1` | Env force STRICT (overrides state) |
-| `WRATH_ORCHESTRATE=1` | Env force multi-model orchestrate mode |
-| `WRATH_IL=1` | Env force Wrath IL agent-wire dialect |
+| `WRATH_STRICT=1` | Force STRICT |
+| `WRATH_ORCHESTRATE=1` | Force fleet mode |
+| `WRATH_IL=1` | Force IL dialect |
+| `WRATH_PRIVACY=1` | Force privacy (bulk upload deny) |
 | `WRATH_BUDGET_TOOLS=N` | Budget nudge threshold |
 | `WRATH_REREAD_WARN=N` | Re-read warn threshold |
+| `WRATH_NESTED_DEPTH=N` | Shell unwrap depth (1–8) |
 | `WRATH_OFF=1` / `WRATH_ON=1` | Force runtime off/on |
 
-**Strict precedence:** env (if set) → state (`/wrath-strict`) OR project `strict`.
+## Commands
 
-**Orchestrate:** `/wrath-orchestrate` · `multi-model on` — lead model judges; pin specialists (`composer-2.5-fast`, `glm-5.2`, `deepseek-v4-flash`, `mimo-v2.5`) on spawn. Env `WRATH_ORCHESTRATE` overrides state.
-
-**IL:** `/wrath-il` · `il on` — dense opcode dialect for internal thought + agent handoffs; user-facing stays prose. Env `WRATH_IL` overrides state.
+| Command | Effect |
+|---------|--------|
+| `/wrath` | Hub |
+| `/wrath-on` / `/wrath-off` | Runtime |
+| `/wrath-profile <name>` | Profile switch |
+| `/wrath-privacy` | Privacy mode |
+| `/wrath-strict` | Strict mode |
+| `/wrath-orchestrate` | Fleet multi-model |
+| `/wrath-il` | IL agent wire |
+| `/wrath-status` · `/wrath-doctor` · `/wrath-why` | Inspect |
+| `/wrath-thin` · `/wrath-check` · `/wrath-ship` · `/wrath-budget` · `/wrath-review` | Workflows |
 
 ## Verify
 
 ```powershell
 python -m pytest
-ruff check hooks mcp tests
+ruff check src hooks mcp tests
 grok plugin details wrath
 ```
+
+## Docs
+
+- [HOOK_CONTRACT.md](docs/HOOK_CONTRACT.md) — Grok Build hook surface
+- [SECURITY.md](SECURITY.md) — residual risk
 
 ## License
 

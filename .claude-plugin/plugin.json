@@ -1,7 +1,7 @@
 {
   "name": "wrath",
-  "version": "1.3.2",
-  "description": "Wrath for Grok Build: cold drive, project config, nested-shell guards, journal/re-read warn, multi-model orchestrate, IL agent wire, /wrath-* + MCP (GPLv3)",
+  "version": "2.0.0",
+  "description": "Wrath V2 for Grok Build: control plane — profiles, policy engine, full lifecycle journal, privacy/fleet/IL, /wrath-* + MCP (GPLv3)",
   "author": {
     "name": "Warexpor"
   },
