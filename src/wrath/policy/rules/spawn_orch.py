@@ -29,10 +29,7 @@ def check_spawn_mode(
     if mode == "deny":
         return Decision(
             allow=False,
-            reason=(
-                "Wrath orch: spawn_subagent requires mode= pin "
-                f"({' | '.join(STYLES)})"
-            ),
+            reason=(f"Wrath orch: spawn_subagent requires mode= pin ({' | '.join(STYLES)})"),
             rule_id="spawn_mode",
             severity="deny",
         )
