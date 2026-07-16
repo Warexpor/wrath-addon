@@ -8,8 +8,10 @@ SPAWN_TOOLS = {
     "task",
 }
 
+STYLES = ("coder", "reviewer", "explorer", "planner", "architect")
 
-def check_spawn_model(
+
+def check_spawn_mode(
     tool: str,
     tool_input: dict,
     *,
@@ -21,25 +23,26 @@ def check_spawn_model(
     name = (tool or "").strip()
     if name not in SPAWN_TOOLS and name.lower() not in {"spawn_subagent", "task"}:
         return None
-    model = str(tool_input.get("model") or "").strip()
-    if model:
+    spawn_mode = str(tool_input.get("mode") or "").strip().lower()
+    if spawn_mode in STYLES:
         return None
     if mode == "deny":
         return Decision(
             allow=False,
             reason=(
-                "Wrath orch: spawn_subagent requires model= pin "
-                "(composer-2.5-fast | glm-5.2 | deepseek-v4-flash | mimo-v2.5)"
+                "Wrath orch: spawn_subagent requires mode= pin "
+                f"({' | '.join(STYLES)})"
             ),
-            rule_id="spawn_model",
+            rule_id="spawn_mode",
             severity="deny",
         )
     return Decision(
         allow=True,
         warning=(
-            "Wrath orch: spawn without model= — pin a specialist; "
-            "silent inherit wastes lead budget."
+            "Wrath orch: spawn without mode= — pin a style "
+            "(coder | reviewer | explorer | planner | architect); "
+            "silent default wastes the style system."
         ),
-        rule_id="spawn_model_warn",
+        rule_id="spawn_mode_warn",
         severity="warn",
     )

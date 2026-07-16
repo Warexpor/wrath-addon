@@ -1,5 +1,44 @@
 # Changelog
 
+## 2.3.0 - 2026-07-17
+
+### Removed
+- **IL (agent-wire dialect) mode stripped entirely.** Removed state flag
+  (`is_il`, `set_il`), env var `WRATH_IL`, config profile defaults, CLI
+  commands (`il-on`/`il-off`), MCP tool `wrath_set_il`, status line field
+  `il=`, drive pack IL injection, skill file `skills/wrath-il/`, the
+  `IL_BODY` constant, the `check_il_spawn_format` policy rule, the
+  SubagentStop/PreToolUse violation feedback loop, and all IL-specific tests.
+  Wrath is a guardrail product — a dense agent-to-agent opcode format was
+  domain feature creep.
+
+### Changed
+- 20+ files simplified (state, config, engine, all hooks, MCP, CLI, skills,
+  docs). Status line now shows `strict/orch/privacy/yolo` without `il`.
+
+## 2.2.0 - 2026-07-17
+
+### Changed
+- **Orchestration rewrite**: multi-model fleet → style dispatch. Same model,
+  different prompt hats. `spawn_subagent` now uses `mode=` (coder|reviewer|explorer|
+  planner|architect) instead of `model=` for routing.
+- `check_spawn_model` → `check_spawn_mode` in policy engine; rule IDs `spawn_mode` /
+  `spawn_mode_warn`.
+- ORCHESTRATE_BODY updated with style-routing table; skill file updated.
+- IL mode modes list updated to match new styles.
+- README/docs updated (fleet profile, PreToolUse description).
+
+### Added
+- **IL enforcement**: spawn-side IL wire-format validation via new
+  `check_il_spawn_format` rule (warns on long prose or fences in spawn_subagent
+  prompts when `il=ON`).
+- **IL violation feedback loop**: SubagentStop detects child return violations
+  (fences, multi-line, prose) and writes a pending violation file. PreToolUse
+  and UserPromptSubmit drain the file and emit systemMessage feedback to the
+  lead on the next tool call or user prompt.
+- New policy rule file `src/wrath/policy/rules/il_spawn.py`.
+- Test coverage: 8 new tests (6 IL spawn format, 2 integration feedback loop).
+
 ## 2.1.0 - 2026-07-16
 
 ### Added

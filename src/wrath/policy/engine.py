@@ -14,7 +14,7 @@ from wrath.policy.rules.shell_git import check_git
 from wrath.policy.rules.shell_infra import check_infra
 from wrath.policy.rules.shell_nested import fully_unwrap, unwrap_nested_shell
 from wrath.policy.rules.shell_pipe_exec import check_pipe_exec
-from wrath.policy.rules.spawn_orch import check_spawn_model
+from wrath.policy.rules.spawn_orch import check_spawn_mode
 from wrath.policy.rules.write_guard import check_write_git, path_is_git_internal
 
 SHELL_TOOLS = {
@@ -89,9 +89,9 @@ def evaluate(
     elif orchestrate and spawn_mode == "off":
         spawn_mode = "warn"
     # Check both raw and canonical names (Task vs spawn_subagent)
-    spawn_d = check_spawn_model(raw_name, tool_input, orchestrate=orchestrate, mode=spawn_mode)
+    spawn_d = check_spawn_mode(raw_name, tool_input, orchestrate=orchestrate, mode=spawn_mode)
     if spawn_d is None and name != raw_name:
-        spawn_d = check_spawn_model(name, tool_input, orchestrate=orchestrate, mode=spawn_mode)
+        spawn_d = check_spawn_mode(name, tool_input, orchestrate=orchestrate, mode=spawn_mode)
     if spawn_d and not spawn_d.allow:
         return spawn_d
     warn_dec: Decision | None = spawn_d if (spawn_d and spawn_d.warning) else None

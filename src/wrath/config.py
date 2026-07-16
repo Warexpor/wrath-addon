@@ -120,7 +120,6 @@ def _profile_defaults(name: str) -> dict[str, Any]:
         "require_spawn_model": "off",
         "strict": False,
         "orchestrate": False,
-        "il": False,
         "privacy": False,
         "yolo": False,
     }
@@ -136,12 +135,10 @@ def _profile_defaults(name: str) -> dict[str, Any]:
         base["strict"] = True
     elif n == "fleet":
         base["orchestrate"] = True
-        base["il"] = True
         base["require_spawn_model"] = "warn"
     elif n == "max":
         base["strict"] = True
         base["orchestrate"] = True
-        base["il"] = True
         base["privacy"] = True
         base["privacy_upload"] = "deny"
         base["require_spawn_model"] = "deny"
@@ -153,7 +150,6 @@ def _profile_defaults(name: str) -> dict[str, Any]:
         base["strict"] = False
         base["privacy"] = False
         base["orchestrate"] = False
-        base["il"] = False
     return base
 
 

@@ -7,26 +7,22 @@ from wrath.event import normalize
 from wrath.io import emit, log_hook_error, plugin_data, read_stdin_json
 from wrath.journal import append_event
 from wrath.modes.drive import drive_system_message
-from wrath.modes.il import IL_BODY
 from wrath.modes.orchestrate import ORCHESTRATE_BODY
 from wrath.modes.privacy import PRIVACY_BODY
 from wrath.modes.yolo import YOLO_BODY
 from wrath.state import (
     get_profile,
-    is_il,
     is_orchestrate,
     is_privacy,
     is_strict,
     is_wrath_enabled,
     is_yolo,
-    parse_il_intent,
     parse_orchestrate_intent,
     parse_privacy_intent,
     parse_profile_intent,
     parse_strict_intent,
     parse_toggle_intent,
     parse_yolo_intent,
-    set_il,
     set_orchestrate,
     set_privacy,
     set_profile,
@@ -69,7 +65,6 @@ def main() -> int:
                         budget=budget_tools_effective(cfg),
                         config_path=cfg.path,
                         orchestrate=is_orchestrate(data),
-                        il=is_il(data),
                         privacy=is_privacy(data),
                         yolo=is_yolo(data, project=cfg),
                         profile=str(state.get("profile") or prof),
@@ -137,28 +132,7 @@ def main() -> int:
             if on:
                 msg = f"{msg}\n{ORCHESTRATE_BODY.strip()}"
             else:
-                msg = f"{msg} Multi-model fleet routing disabled for this machine."
-            emit({"systemMessage": msg})
-            return 0
-
-        il_intent = parse_il_intent(prompt)
-        if il_intent is not None:
-            state = set_il(il_intent, data_dir=data, source="user_prompt")
-            append_event(
-                data,
-                {
-                    "kind": "toggle",
-                    "session_id": he.session_id,
-                    "il": state["il"],
-                    "source": "user_prompt_il",
-                },
-            )
-            on = bool(state["il"])
-            msg = f"[Wrath il={'on' if on else 'off'}] Env WRATH_IL overrides state when set."
-            if on:
-                msg = f"{msg}\n{IL_BODY.strip()}"
-            else:
-                msg = f"{msg} Agent wire / internal IL dialect disabled."
+                msg = f"{msg} Style dispatch routing disabled for this machine."
             emit({"systemMessage": msg})
             return 0
 
@@ -205,7 +179,6 @@ def main() -> int:
                         budget=budget_tools_effective(cfg),
                         config_path=cfg.path,
                         orchestrate=is_orchestrate(data),
-                        il=is_il(data),
                         privacy=is_privacy(data),
                         yolo=is_yolo(data, project=cfg),
                         profile=get_profile(data, project=cfg),
@@ -227,6 +200,6 @@ def main() -> int:
                 }
             )
             return 0
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log_hook_error("UserPromptSubmit", exc)
     return 0

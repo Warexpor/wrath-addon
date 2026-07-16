@@ -11,7 +11,7 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 
 - Control plane: profiles, modular policy, full lifecycle journal
 - PreToolUse guards (nested shell depth 3, privacy upload, spawn model pin, footguns)
-- Drive pack + modes (strict / orch / il / privacy)
+- Drive pack + modes (strict / orch / privacy)
 - MCP inspect tools
 
 ## On / off / modes
@@ -24,8 +24,7 @@ You are running **inside Grok Build** with the Wrath plugin loaded.
 | `/wrath-privacy` | Privacy bulk-upload deny |
 | `/wrath-yolo` | YOLO soft guards (anti-max) |
 | `/wrath-strict` | STRICT state on/off |
-| `/wrath-orchestrate` | Fleet multi-model on/off |
-| `/wrath-il` | Agent-wire IL dialect on/off |
+| `/wrath-orchestrate` | Style dispatch multi-mode on/off |
 
 ## Commands
 

@@ -61,7 +61,7 @@ def main() -> int:
                         "rule_id": decision.rule_id or None,
                     },
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 log_hook_error("PreToolUse.journal", exc)
             emit(decision.as_hook_dict())
             return 0
@@ -85,7 +85,7 @@ def main() -> int:
                 prior = count_tool_path(data, he.session_id, path)
             if prior + 1 >= threshold:
                 msg = (
-                    f"Wrath: path read {prior + 1}× this session ({key!s}). "
+                    f"Wrath: path read {prior + 1}x this session ({key!s}). "
                     "Prefer grep or skip re-read."
                 )
                 warning = f"{warning} {msg}".strip() if warning else msg
@@ -94,7 +94,7 @@ def main() -> int:
         if warning:
             out["systemMessage"] = warning
         emit(out)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log_hook_error("PreToolUse", exc)
         emit(
             {

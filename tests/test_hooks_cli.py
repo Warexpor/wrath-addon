@@ -87,7 +87,6 @@ def test_session_start_has_drive(tmp_path: Path):
     assert "v" in msg  # status line version
     assert "strict=" in msg
     assert "orch=" in msg
-    assert "il=" in msg
     assert "privacy=" in msg
     assert "yolo=" in msg
     assert "profile=" in msg
@@ -112,18 +111,6 @@ def test_session_start_orchestrate_injects_routing(tmp_path: Path):
     msg = res["systemMessage"]
     assert "orch=on" in msg
     assert "ORCHESTRATE" in msg or "LEAD" in msg
-
-
-def test_session_start_il_injects_wire(tmp_path: Path):
-    from toggle import set_il
-
-    data = tmp_path / "data"
-    data.mkdir(exist_ok=True)
-    set_il(True, data_dir=data, source="test")
-    res = _run_hook("session_start.py", {}, tmp_path)
-    msg = res["systemMessage"]
-    assert "il=on" in msg
-    assert "IL" in msg or "agent wire" in msg.lower()
 
 
 def test_session_start_privacy_injects_body(tmp_path: Path):

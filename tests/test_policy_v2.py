@@ -46,14 +46,14 @@ def test_spawn_orch_warn():
     )
     assert d.allow
     assert d.warning
-    assert "model" in d.warning.lower()
+    assert "mode" in d.warning.lower()
 
 
-def test_spawn_orch_with_model_ok():
+def test_spawn_orch_with_mode_ok():
     d = evaluate(
         "spawn_subagent",
         "",
-        {"prompt": "do thing", "model": "composer-2.5-fast", "description": "x"},
+        {"prompt": "do thing", "mode": "coder", "description": "x"},
         orchestrate=True,
     )
     assert d.allow
@@ -97,7 +97,7 @@ def test_spawn_warn_keeps_rule_id():
     )
     assert d.allow
     assert d.warning
-    assert d.rule_id.startswith("spawn")
+    assert d.rule_id.startswith("spawn_mode")
 
 
 def test_yolo_allows_force_push_main(monkeypatch):

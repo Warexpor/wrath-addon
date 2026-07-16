@@ -105,6 +105,6 @@ Write-Host "Done. Next:"
 Write-Host "  - Restart grok or reload plugins (Plugins tab: r)"
 Write-Host "  - Try /wrath  /wrath-status  /wrath-doctor  /wrath-profile  /wrath-yolo"
 Write-Host "  - Workflows: /wrath-thin  /wrath-check  /wrath-ship  /wrath-why"
-Write-Host "  - Overrides: WRATH_ALLOW_* ; WRATH_STRICT ; WRATH_PRIVACY ; WRATH_YOLO ; WRATH_ORCHESTRATE ; WRATH_IL"
+Write-Host "  - Overrides: WRATH_ALLOW_* ; WRATH_STRICT ; WRATH_PRIVACY ; WRATH_YOLO ; WRATH_ORCHESTRATE"
 & $Grok plugin details wrath 2>$null
 if ($LASTEXITCODE -ne 0) { & $Grok plugin list }

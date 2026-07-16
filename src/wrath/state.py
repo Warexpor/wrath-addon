@@ -16,7 +16,6 @@ STATE_NAME = "wrath_state.json"
 DEFAULT_ENABLED = True
 DEFAULT_STRICT = False
 DEFAULT_ORCHESTRATE = False
-DEFAULT_IL = False
 DEFAULT_PRIVACY = False
 DEFAULT_YOLO = False
 DEFAULT_PROFILE = "default"
@@ -25,7 +24,6 @@ ENV_FORCE_OFF = "WRATH_OFF"
 ENV_FORCE_ON = "WRATH_ON"
 ENV_STRICT = "WRATH_STRICT"
 ENV_ORCHESTRATE = "WRATH_ORCHESTRATE"
-ENV_IL = "WRATH_IL"
 ENV_PRIVACY = "WRATH_PRIVACY"
 ENV_YOLO = "WRATH_YOLO"
 
@@ -39,7 +37,6 @@ def _defaults() -> dict[str, Any]:
         "enabled": DEFAULT_ENABLED,
         "strict": DEFAULT_STRICT,
         "orchestrate": DEFAULT_ORCHESTRATE,
-        "il": DEFAULT_IL,
         "privacy": DEFAULT_PRIVACY,
         "yolo": DEFAULT_YOLO,
         "profile": DEFAULT_PROFILE,
@@ -80,7 +77,6 @@ def _preserve(prev: dict[str, Any], **overrides: Any) -> dict[str, Any]:
         "enabled": bool(prev.get("enabled", DEFAULT_ENABLED)),
         "strict": bool(prev.get("strict", DEFAULT_STRICT)),
         "orchestrate": bool(prev.get("orchestrate", DEFAULT_ORCHESTRATE)),
-        "il": bool(prev.get("il", DEFAULT_IL)),
         "privacy": bool(prev.get("privacy", DEFAULT_PRIVACY)),
         "yolo": bool(prev.get("yolo", DEFAULT_YOLO)),
         "profile": str(prev.get("profile") or DEFAULT_PROFILE),
@@ -138,19 +134,6 @@ def set_orchestrate(
     data = data_dir or plugin_data()
     prev = load_state(data)
     return _write_state(data, _preserve(prev, orchestrate=bool(orchestrate), source=source))
-
-
-def is_il(data_dir: Path | None = None) -> bool:
-    env = os.environ.get(ENV_IL)
-    if env is not None and str(env).strip() != "":
-        return str(env).strip().lower() in {"1", "true", "yes", "on"}
-    return bool(load_state(data_dir).get("il", DEFAULT_IL))
-
-
-def set_il(il: bool, data_dir: Path | None = None, source: str = "cli") -> dict[str, Any]:
-    data = data_dir or plugin_data()
-    prev = load_state(data)
-    return _write_state(data, _preserve(prev, il=bool(il), source=source))
 
 
 def is_privacy(data_dir: Path | None = None) -> bool:
@@ -229,7 +212,6 @@ def set_profile(profile: str, data_dir: Path | None = None, source: str = "cli")
         profile=name,
         strict=bool(pdata.get("strict")),
         orchestrate=bool(pdata.get("orchestrate")),
-        il=bool(pdata.get("il")),
         privacy=bool(pdata.get("privacy")),
         yolo=bool(pdata.get("yolo")),
         source=source,
@@ -245,12 +227,6 @@ def parse_toggle_intent(text: str) -> bool | None:
     if re.search(r"\bstrict\b", t):
         return None
     if re.search(r"\borchestrate\b", t) or re.search(r"\bmulti[\s_-]*model\b", t):
-        return None
-    if re.search(r"\bwrath[\s_-]*il\b", t) or re.search(r"\bil[\s_-]*mode\b", t):
-        return None
-    if re.search(r"(?:^|\b)il[\s_-]*(?:on|off)\b", t) or re.search(
-        r"\b(?:enable|disable)\s+il\b", t
-    ):
         return None
     if re.search(r"\bprivacy\b", t) or re.search(r"\bprofile\b", t):
         return None
@@ -334,44 +310,6 @@ def parse_orchestrate_intent(text: str) -> bool | None:
             if re.search(r"orchestrate[\s_-]*off\b", t) or re.search(
                 r"multi[\s_-]*model[\s_-]*off\b", t
             ):
-                return False
-            return True
-    return None
-
-
-def parse_il_intent(text: str) -> bool | None:
-    t = (text or "").strip().lower()
-    if not t:
-        return None
-    t = re.sub(r"^/", "", t)
-    off_patterns = (
-        r"\bwrath[\s_-]*il[\s_-]*off\b",
-        r"\bdisable\s+wrath\s+il\b",
-        r"\bwrath\s+il\s+off\b",
-        r"\bil[\s_-]*mode[\s_-]*off\b",
-        r"\bdisable\s+il\s+mode\b",
-        r"\bdisable\s+il\b",
-        r"\bil[\s_-]*off\b",
-        r"\bturn\s+il\s+off\b",
-        r"\bturn\s+wrath\s+il\s+off\b",
-    )
-    on_patterns = (
-        r"\bwrath[\s_-]*il\b",
-        r"\benable\s+wrath\s+il\b",
-        r"\bwrath\s+il\s+on\b",
-        r"\benable\s+il\s+mode\b",
-        r"\bil[\s_-]*mode[\s_-]*on\b",
-        r"\benable\s+il\b",
-        r"\bil[\s_-]*on\b",
-        r"\bturn\s+il\s+on\b",
-        r"\bturn\s+wrath\s+il\s+on\b",
-    )
-    for pat in off_patterns:
-        if re.search(pat, t):
-            return False
-    for pat in on_patterns:
-        if re.search(pat, t):
-            if re.search(r"il[\s_-]*off\b", t) or re.search(r"\bil\s+mode\s+off\b", t):
                 return False
             return True
     return None

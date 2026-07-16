@@ -1,6 +1,6 @@
 # Wrath V2 — Grok Build control plane
 
-**GPLv3.** Cold drive, profiles (incl. yolo), modular policy, lifecycle journal, privacy/fleet/IL, `/wrath-*` + MCP.
+**GPLv3.** Cold drive, profiles (incl. yolo), modular policy, lifecycle journal, privacy/fleet, `/wrath-*` + MCP.
 
 Not a second agent runtime. Heuristic guards — not a full sandbox ([SECURITY.md](SECURITY.md)).
 
@@ -24,7 +24,7 @@ Requires **Python 3.10+** and the `src/wrath` package (ships with the plugin).
 | Piece | Effect |
 |-------|--------|
 | SessionStart | Status line + drive pack + MCP self-heal |
-| PreToolUse | Modular policy (nested shell depth 3, privacy, spawn model pin, footguns) |
+| PreToolUse | Modular policy (nested shell depth 3, privacy, spawn mode pin, footguns) |
 | Full lifecycle | PermissionDenied, SubagentStart/Stop, Compact, SessionEnd, StopFailure |
 | Profiles | `default` · `thin` · `strict` · `privacy` · `fleet` · `max` · `yolo` |
 | Journal schema 2 | rule_id denials, subagents, harness denials |
@@ -36,9 +36,9 @@ Requires **Python 3.10+** and the `src/wrath` package (ships with the plugin).
 |---------|--------|
 | default | Baseline guards, privacy upload **warn** |
 | thin | Lighter privacy |
-| strict | Strict denials + spawn model warn |
+| strict | Strict denials + spawn mode warn |
 | privacy | Strict + privacy upload **deny** |
-| fleet | orchestrate + il + spawn model warn |
+| fleet | orchestrate + il + spawn mode warn |
 | max | All of the above hard |
 | **yolo** | Soft guards (anti-max): force-push / reset --hard / pipe / bulk upload allowed; catastrophic fs + project deny still blocked |
 
@@ -71,7 +71,6 @@ Walks up from cwd / `GROK_PROJECT_DIR`. v1 configs still load.
 | `WRATH_ALLOW_PIPE_EXEC=1` | Allow curl\|bash / iwr\|iex |
 | `WRATH_STRICT=1` | Force STRICT |
 | `WRATH_ORCHESTRATE=1` | Force fleet mode |
-| `WRATH_IL=1` | Force IL dialect |
 | `WRATH_PRIVACY=1` | Force privacy (bulk upload deny) |
 | `WRATH_YOLO=1` | Force YOLO soft-guard mode |
 | `WRATH_BUDGET_TOOLS=N` | Budget nudge threshold |
@@ -89,8 +88,7 @@ Walks up from cwd / `GROK_PROJECT_DIR`. v1 configs still load.
 | `/wrath-privacy` | Privacy mode |
 | `/wrath-yolo` | YOLO soft guards |
 | `/wrath-strict` | Strict mode |
-| `/wrath-orchestrate` | Fleet multi-model |
-| `/wrath-il` | IL agent wire |
+| `/wrath-orchestrate` | Style dispatch |
 | `/wrath-status` · `/wrath-doctor` · `/wrath-why` | Inspect |
 | `/wrath-thin` · `/wrath-check` · `/wrath-ship` · `/wrath-budget` · `/wrath-review` | Workflows |
 

@@ -7,7 +7,6 @@ from wrath.journal import append_event
 from wrath.modes.drive import drive_system_message
 from wrath.state import (
     get_profile,
-    is_il,
     is_orchestrate,
     is_privacy,
     is_strict,
@@ -26,7 +25,6 @@ def main() -> int:
         enabled = is_wrath_enabled(data)
         strict = is_strict(data, project=cfg)
         orchestrate = is_orchestrate(data)
-        il = is_il(data)
         privacy = is_privacy(data)
         yolo = is_yolo(data, project=cfg)
         profile = get_profile(data, project=cfg)
@@ -39,7 +37,6 @@ def main() -> int:
                 "enabled": enabled,
                 "strict": strict,
                 "orchestrate": orchestrate,
-                "il": il,
                 "privacy": privacy,
                 "yolo": yolo,
                 "profile": profile,
@@ -53,14 +50,13 @@ def main() -> int:
                     budget=budget,
                     config_path=cfg.path,
                     orchestrate=orchestrate,
-                    il=il,
                     privacy=privacy,
                     yolo=yolo,
                     profile=profile,
                 )
             }
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log_hook_error("SessionStart", exc)
         emit({"systemMessage": f"Wrath SessionStart note: {exc}"})
     return 0

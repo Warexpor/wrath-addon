@@ -19,14 +19,12 @@ from wrath.journal import counts, journal_path, last_denies, session_stats, tail
 from wrath.policy import evaluate
 from wrath.state import (
     get_profile,
-    is_il,
     is_orchestrate,
     is_privacy,
     is_strict,
     is_wrath_enabled,
     is_yolo,
     load_state,
-    set_il,
     set_orchestrate,
     set_privacy,
     set_profile,
@@ -142,20 +140,11 @@ TOOLS = [
     },
     {
         "name": "wrath_set_orchestrate",
-        "description": "Enable or disable multi-model orchestrate fleet mode.",
+        "description": "Enable or disable style-dispatch orchestration (mode= over model=).",
         "inputSchema": {
             "type": "object",
             "properties": {"orchestrate": {"type": "boolean"}},
             "required": ["orchestrate"],
-        },
-    },
-    {
-        "name": "wrath_set_il",
-        "description": "Enable or disable Wrath IL agent-wire dialect.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {"il": {"type": "boolean"}},
-            "required": ["il"],
         },
     },
     {
@@ -234,7 +223,6 @@ def handle_tool(name: str, args: dict) -> str:
                 "profile": get_profile(d, project=cfg),
                 "strict": is_strict(d, project=cfg),
                 "orchestrate": is_orchestrate(d),
-                "il": is_il(d),
                 "privacy": is_privacy(d),
                 "yolo": is_yolo(d, project=cfg),
                 "budget_tools": budget_tools_effective(cfg),
@@ -278,8 +266,6 @@ def handle_tool(name: str, args: dict) -> str:
             set_orchestrate(bool(args.get("orchestrate")), data_dir=d, source="mcp"),
             indent=2,
         )
-    if name == "wrath_set_il":
-        return json.dumps(set_il(bool(args.get("il")), data_dir=d, source="mcp"), indent=2)
     if name == "wrath_set_privacy":
         return json.dumps(
             set_privacy(bool(args.get("privacy")), data_dir=d, source="mcp"),
@@ -301,7 +287,6 @@ def handle_tool(name: str, args: dict) -> str:
                 "profile": get_profile(d, project=cfg),
                 "strict": is_strict(d, project=cfg),
                 "orchestrate": is_orchestrate(d),
-                "il": is_il(d),
                 "privacy": is_privacy(d),
                 "yolo": is_yolo(d, project=cfg),
                 "budget_tools": budget_tools_effective(cfg),
@@ -358,7 +343,6 @@ def handle_tool(name: str, args: dict) -> str:
                 "profile": get_profile(d, project=cfg),
                 "strict": is_strict(d, project=cfg),
                 "orchestrate": is_orchestrate(d),
-                "il": is_il(d),
                 "privacy": is_privacy(d),
                 "yolo": is_yolo(d, project=cfg),
                 "state": load_state(d),
@@ -447,7 +431,6 @@ def handle_tool(name: str, args: dict) -> str:
                 "modes": {
                     "strict": is_strict(d, project=cfg),
                     "orchestrate": is_orchestrate(d),
-                    "il": is_il(d),
                     "privacy": is_privacy(d),
                     "yolo": is_yolo(d, project=cfg),
                 },
